@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Plans from "./pages/Plans";
 import Memories from "./pages/Memories";
 import { db } from "./firebase";
+import { serverTimestamp } from "firebase/firestore";
 import {
   collection,
   addDoc,
@@ -12,6 +13,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { FaHome, FaList, FaHeart } from "react-icons/fa";
+import { query, orderBy } from "firebase/firestore";
 
 function App() {
   const startDate = new Date("2025-11-25");
@@ -34,7 +36,10 @@ function App() {
   useEffect(() => {
     if (!roomId) return;
 
-    const unsubscribe = onSnapshot(plansRef, (snapshot) => {
+    const plansRef = collection(db, "rooms", roomId, "plans");
+    const q = query(plansRef, orderBy("order", "asc"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -47,10 +52,11 @@ function App() {
 
   // thêm
   const addPlan = async (text) => {
-    if (!plansRef) return;
     await addDoc(plansRef, {
       text,
       done: false,
+      createdAt: serverTimestamp(),
+      order: Date.now(),
     });
   };
 
@@ -85,7 +91,7 @@ function App() {
   // 🚪 nếu chưa có room → show màn nhập
   if (!roomId) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-pink-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-pink-100 p-4 overflow-x-hidden">
         <div className="bg-white p-6 rounded-2xl shadow w-full max-w-sm">
           <h2 className="text-xl font-bold mb-4 text-center">
             Nhập mã phòng ❤️
