@@ -78,64 +78,131 @@ function PlanItem({ plan, togglePlan, deletePlan, roomId }) {
     setEditing(false);
   };
 
+  // return (
+  //   <div className="relative overflow-hidden mb-2">
+  //     {/* nền đỏ */}
+  //     <div className="absolute inset-0 bg-red-100 flex justify-end items-center pr-4">
+  //       <button
+  //         onClick={() => deletePlan(plan)}
+  //         className="text-red-500 font-bold"
+  //       >
+  //         Xoá
+  //       </button>
+  //     </div>
+
+  //     {/* nội dung */}
+  //     <div
+  //       {...handlers}
+  //       className={`bg-white rounded-xl px-3 py-2 shadow-sm flex justify-between transition transform ${
+  //         swiped ? "-translate-x-20" : "translate-x-0"
+  //       }`}
+  //     >
+  //       <div className="flex items-center gap-2 w-full min-w-0">
+  //         <input
+  //           type="checkbox"
+  //           checked={plan.done}
+  //           onChange={() => togglePlan(plan)}
+  //           className="w-4 h-4 accent-pink-500 mt-1"
+  //         />
+
+  //         {/* text / edit */}
+  //         {editing ? (
+  //           <textarea
+  //             ref={textareaRef}
+  //             autoFocus
+  //             value={editText}
+  //             onChange={(e) => setEditText(e.target.value)}
+  //             onInput={(e) => {
+  //               e.target.style.height = "auto";
+  //               e.target.style.height = e.target.scrollHeight + "px";
+  //             }}
+  //             className="border rounded px-2 py-1 w-full resize-none overflow-hidden outline-none focus:ring-2 focus:ring-pink-300"
+  //           />
+  //         ) : (
+  //           <span
+  //             className={`break-words flex-1 min-w-0 ${
+  //               plan.done ? "line-through text-gray-400" : ""
+  //             }`}
+  //           >
+  //             {plan.text}
+  //           </span>
+  //         )}
+  //       </div>
+
+  //       {/* nút sửa / lưu */}
+  //       <button
+  //         onClick={editing ? handleSave : () => setEditing(true)}
+  //         className="text-blue-400 text-xs ml-2 whitespace-nowrap"
+  //       >
+  //         {editing ? "Lưu" : "Sửa"}
+  //       </button>
+  //     </div>
+  //   </div>
+  // );
   return (
-    <div className="relative overflow-hidden mb-2">
-      {/* nền đỏ */}
-      <div className="absolute inset-0 bg-red-100 flex justify-end items-center pr-4">
+    <div className="relative overflow-hidden mb-3">
+      {/* nền xoá */}
+      <div className="absolute inset-0 bg-red-100 flex justify-end items-center pr-4 rounded-2xl">
         <button
           onClick={() => deletePlan(plan)}
-          className="text-red-500 font-bold"
+          className="text-red-500 font-semibold"
         >
           Xoá
         </button>
       </div>
 
-      {/* nội dung */}
+      {/* card */}
       <div
         {...handlers}
-        className={`bg-white rounded-xl px-3 py-2 shadow-sm flex justify-between transition transform ${
-          swiped ? "-translate-x-20" : "translate-x-0"
+        className={`bg-white rounded-2xl p-4 shadow-sm transition transform ${
+          swiped ? "-translate-x-24" : "translate-x-0"
         }`}
       >
-        <div className="flex items-center gap-2 w-full min-w-0">
-          <input
-            type="checkbox"
-            checked={plan.done}
-            onChange={() => togglePlan(plan)}
-            className="w-4 h-4 accent-pink-500 mt-1"
-          />
-
-          {/* text / edit */}
-          {editing ? (
-            <textarea
-              ref={textareaRef}
-              autoFocus
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              onInput={(e) => {
-                e.target.style.height = "auto";
-                e.target.style.height = e.target.scrollHeight + "px";
-              }}
-              className="border rounded px-2 py-1 w-full resize-none overflow-hidden outline-none focus:ring-2 focus:ring-pink-300"
+        {/* header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={plan.done}
+              onChange={() => togglePlan(plan)}
+              className="w-5 h-5 accent-pink-500"
             />
-          ) : (
-            <span
-              className={`break-words flex-1 min-w-0 ${
-                plan.done ? "line-through text-gray-400" : ""
-              }`}
-            >
-              {plan.text}
-            </span>
-          )}
+
+            <p className="text-sm text-gray-400">
+              {plan.done ? "Đã xong" : "Chưa xong"}
+            </p>
+          </div>
+
+          <button
+            onClick={editing ? handleSave : () => setEditing(true)}
+            className="text-blue-400 text-xs"
+          >
+            {editing ? "Lưu" : "Sửa"}
+          </button>
         </div>
 
-        {/* nút sửa / lưu */}
-        <button
-          onClick={editing ? handleSave : () => setEditing(true)}
-          className="text-blue-400 text-xs ml-2 whitespace-nowrap"
-        >
-          {editing ? "Lưu" : "Sửa"}
-        </button>
+        {/* content */}
+        {editing ? (
+          <textarea
+            ref={textareaRef}
+            autoFocus
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            onInput={(e) => {
+              e.target.style.height = "auto";
+              e.target.style.height = e.target.scrollHeight + "px";
+            }}
+            className="border rounded-lg px-3 py-2 w-full resize-none overflow-hidden outline-none focus:ring-2 focus:ring-pink-300"
+          />
+        ) : (
+          <p
+            className={`text-gray-700 break-words ${
+              plan.done ? "line-through text-gray-400" : ""
+            }`}
+          >
+            {plan.text}
+          </p>
+        )}
       </div>
     </div>
   );
