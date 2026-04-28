@@ -16,13 +16,13 @@ function Home({ days }) {
         {/* 🔥 VÒNG TRÒN CHUẨN */}
         <div className="relative w-60 h-60 flex items-center justify-center">
           {/* viền gradient */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 to-purple-400"></div>
+          {/* <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 to-purple-400"></div> */}
 
           {/* cắt rỗng bên trong */}
           <div className="absolute inset-[6px] rounded-full bg-transparent"></div>
 
           {/* nội dung */}
-          <div className="relative text-center text-white">
+          <div className="relative text-center text-pink-400">
             <p className="text-sm opacity-80">Đang yêu</p>
             <h1 className="text-5xl font-bold leading-none">{days}</h1>
             <p className="text-sm opacity-80">Ngày</p>
