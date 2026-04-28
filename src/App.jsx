@@ -11,6 +11,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
+import { FaHome, FaList, FaHeart } from "react-icons/fa";
 
 function App() {
   const startDate = new Date("2025-11-25");
@@ -99,7 +100,7 @@ function App() {
 
           <button
             onClick={joinRoom}
-            className="bg-pink-500 text-white w-full py-2 rounded"
+            className="bg-pink-500 text-white w-full py-2 rounded active:scale-90 transition"
           >
             Vào phòng
           </button>
@@ -109,9 +110,13 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-pink-100 p-4 pb-16">
+    <div className="min-h-screen bg-gradient-to-b from-pink-100 to-pink-50 p-4 pb-20">
       <div className="flex justify-end mb-2">
-        <button onClick={logout} className="text-sm text-red-500">
+        <p className="text-sm text-gray-500 mr-2">Room: {roomId}</p>
+        <button
+          onClick={logout}
+          className="text-sm text-red-500 active:scale-90 transition"
+        >
           Đổi phòng
         </button>
       </div>
@@ -125,6 +130,7 @@ function App() {
           addPlan={addPlan}
           togglePlan={togglePlan}
           deletePlan={deletePlan}
+          roomId={roomId}
         />
       )}
 
@@ -132,31 +138,34 @@ function App() {
       {tab === "memories" && <Memories />}
 
       {/* taskbar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white shadow flex justify-around p-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t flex justify-around py-2">
         <button
           onClick={() => setTab("home")}
-          className={
-            tab === "home" ? "text-pink-500 font-bold" : "text-gray-500"
-          }
+          className={`flex flex-col items-center text-xs active:scale-90 transition ${
+            tab === "home" ? "text-pink-500" : "text-gray-400"
+          }`}
         >
+          <FaHome size={18} />
           Home
         </button>
 
         <button
           onClick={() => setTab("plans")}
-          className={
-            tab === "plans" ? "text-pink-500 font-bold" : "text-gray-500"
-          }
+          className={`flex flex-col items-center text-xs active:scale-90 transition ${
+            tab === "plans" ? "text-pink-500" : "text-gray-400"
+          }`}
         >
+          <FaList size={18} />
           Plans
         </button>
 
         <button
           onClick={() => setTab("memories")}
-          className={
-            tab === "memories" ? "text-pink-500 font-bold" : "text-gray-500"
-          }
+          className={`flex flex-col items-center text-xs active:scale-90 transition ${
+            tab === "memories" ? "text-pink-500" : "text-gray-400"
+          }`}
         >
+          <FaHeart size={18} />
           Memories
         </button>
       </div>
