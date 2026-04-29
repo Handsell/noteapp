@@ -144,7 +144,7 @@ function App() {
       {tab === "memories" && <Memories />}
 
       {/* taskbar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t flex justify-around py-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-lg flex justify-around items-center h-20 rounded-t-2xl">
         <button
           onClick={() => setTab("home")}
           className={`flex flex-col items-center text-xs active:scale-90 transition ${

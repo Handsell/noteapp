@@ -117,7 +117,7 @@ function PlanItem({ plan, togglePlan, deletePlan, roomId, dragListeners }) {
     onSwipedRight: () => setSwiped(false),
     preventScrollOnSwipe: true,
     trackTouch: true,
-    preventDefaultTouchmoveEvent: true,
+    // preventDefaultTouchmoveEvent: true,
     delta: 10,
   });
 
