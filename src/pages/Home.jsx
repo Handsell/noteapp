@@ -228,18 +228,26 @@ function Home({ days }) {
 
                 <span
                   className="
-                    inline-flex
-                    items-center
-                    justify-center
-                    px-3
-                    py-1
-                    rounded-full
-                    bg-purple-300
-                    text-white
-                    text-[clamp(10px,2.8vw,15px)]
-                    leading-none
-                    whitespace-nowrap
-                  "
+    inline-flex
+    items-center
+    justify-center
+
+    px-[clamp(7px,2vw,12px)]
+    py-[clamp(4px,1vw,6px)]
+
+    rounded-full
+
+    bg-purple-300
+    text-white
+
+    text-[clamp(9px,2.4vw,14px)]
+
+    leading-tight
+    whitespace-nowrap
+
+    max-w-full
+    shrink
+  "
                 >
                   ♎ Thiên Bình
                 </span>
@@ -352,18 +360,26 @@ function Home({ days }) {
 
                 <span
                   className="
-                    inline-flex
-                    items-center
-                    justify-center
-                    px-3
-                    py-1
-                    rounded-full
-                    bg-purple-300
-                    text-white
-                    text-[clamp(10px,2.8vw,15px)]
-                    leading-none
-                    whitespace-nowrap
-                  "
+    inline-flex
+    items-center
+    justify-center
+
+    px-[clamp(7px,2vw,12px)]
+    py-[clamp(4px,1vw,6px)]
+
+    rounded-full
+
+    bg-purple-300
+    text-white
+
+    text-[clamp(9px,2.4vw,14px)]
+
+    leading-tight
+    whitespace-nowrap
+
+    max-w-full
+    shrink
+  "
                 >
                   ♐ Nhân Mã
                 </span>
