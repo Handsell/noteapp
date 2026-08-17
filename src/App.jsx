@@ -1,68 +1,91 @@
 import { useState } from "react";
+
 import Home from "./pages/Home";
 import Plans from "./pages/Plans";
 import Memories from "./pages/Memories";
+
 import { FaHome, FaList, FaHeart } from "react-icons/fa";
 
 function App() {
+  // =====================================================
+  // NGÀY YÊU
+  // =====================================================
+
   const startDate = new Date("2025-11-25");
+
   const today = new Date();
 
   const diffTime = today - startDate;
+
   const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   // =====================================================
-  // ROOM CỐ ĐỊNH
-  // Không còn cho người dùng nhập room
+  // ROOM
+  // Không cần nhập mã nữa
+  // =====================================================
+
+  const roomId = "love123";
+
+  // =====================================================
+  // TAB
   // =====================================================
 
   const [tab, setTab] = useState("home");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-100 to-pink-50 pb-24 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-pink-100 to-pink-50 overflow-x-hidden">
       {/* =================================================
-          HOME
+          CONTENT
+          Không dùng && để component không bị unmount
       ================================================= */}
-      {tab === "home" && <Home days={days} />}
+
+      <div className="pb-24">
+        {/* ================= HOME ================= */}
+
+        <div className={tab === "home" ? "block" : "hidden"}>
+          <Home days={days} />
+        </div>
+
+        {/* ================= PLANS ================= */}
+
+        <div className={tab === "plans" ? "block" : "hidden"}>
+          <Plans roomId={roomId} />
+        </div>
+
+        {/* ================= MEMORIES ================= */}
+
+        <div className={tab === "memories" ? "block" : "hidden"}>
+          <Memories />
+        </div>
+      </div>
 
       {/* =================================================
-          PLANS
+          TASKBAR
       ================================================= */}
-      {tab === "plans" && <Plans roomId="love123" />}
-      {/* =================================================
-          MEMORIES
-      ================================================= */}
-      {tab === "memories" && <Memories />}
 
-      {/* =================================================
-          BOTTOM TAB BAR
-      ================================================= */}
       <div
         className="
           fixed
           bottom-0
           left-0
           right-0
-
-          z-[999]
-
-          h-20
+          z-50
 
           bg-white/90
           backdrop-blur-md
-
-          shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
-
-          rounded-t-2xl
+          shadow-lg
 
           flex
           justify-around
           items-center
 
-          pb-[env(safe-area-inset-bottom)]
+          h-20
+
+          rounded-t-2xl
         "
       >
-        {/* HOME */}
+        {/* ================= HOME ================= */}
+
         <button
           onClick={() => setTab("home")}
           className={`
@@ -70,7 +93,6 @@ function App() {
             flex-col
             items-center
             justify-center
-
             gap-1
 
             text-xs
@@ -82,10 +104,12 @@ function App() {
           `}
         >
           <FaHome size={18} />
+
           <span>Home</span>
         </button>
 
-        {/* PLANS */}
+        {/* ================= PLANS ================= */}
+
         <button
           onClick={() => setTab("plans")}
           className={`
@@ -93,7 +117,6 @@ function App() {
             flex-col
             items-center
             justify-center
-
             gap-1
 
             text-xs
@@ -105,10 +128,12 @@ function App() {
           `}
         >
           <FaList size={18} />
+
           <span>Plans</span>
         </button>
 
-        {/* MEMORIES */}
+        {/* ================= MEMORIES ================= */}
+
         <button
           onClick={() => setTab("memories")}
           className={`
@@ -116,7 +141,6 @@ function App() {
             flex-col
             items-center
             justify-center
-
             gap-1
 
             text-xs
@@ -128,6 +152,7 @@ function App() {
           `}
         >
           <FaHeart size={18} />
+
           <span>Memories</span>
         </button>
       </div>

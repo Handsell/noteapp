@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+
 import { useSwipeable } from "react-swipeable";
+
 import {
   collection,
   addDoc,
@@ -26,18 +28,26 @@ import {
 import { GripVertical, ArrowLeft, Plus } from "lucide-react";
 
 function Plans({ roomId }) {
+  // =====================================================
+  // STATE
+  // =====================================================
+
   const [plans, setPlans] = useState([]);
 
-  // Plan đang được mở
+  const [loading, setLoading] = useState(true);
+
   const [selectedPlan, setSelectedPlan] = useState(null);
 
-  // Hiện form tạo plan
   const [showCreate, setShowCreate] = useState(false);
 
   const [newPlan, setNewPlan] = useState("");
 
   // =====================================================
-  // LOAD DANH SÁCH PLAN
+  // LOAD PLANS
+  //
+  // Quan trọng:
+  // Component Plans không bị unmount khi đổi tab
+  // nên listener này chỉ chạy 1 lần.
   // =====================================================
 
   useEffect(() => {
@@ -45,14 +55,28 @@ function Plans({ roomId }) {
 
     const q = query(plansRef, orderBy("order", "asc"));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((item) => ({
-        id: item.id,
-        ...item.data(),
-      }));
+    const unsubscribe = onSnapshot(
+      q,
 
-      setPlans(data);
-    });
+      (snapshot) => {
+        const data = snapshot.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+        }));
+
+        setPlans(data);
+
+        // Chỉ tắt loading sau khi Firebase
+        // trả dữ liệu lần đầu.
+        setLoading(false);
+      },
+
+      (error) => {
+        console.error("Lỗi tải plans:", error);
+
+        setLoading(false);
+      },
+    );
 
     return () => unsubscribe();
   }, [roomId]);
@@ -70,11 +94,14 @@ function Plans({ roomId }) {
 
     await addDoc(plansRef, {
       title,
+
       createdAt: serverTimestamp(),
+
       order: Date.now(),
     });
 
     setNewPlan("");
+
     setShowCreate(false);
   };
 
@@ -86,20 +113,32 @@ function Plans({ roomId }) {
     const ref = doc(db, "rooms", roomId, "plans", plan.id);
 
     await deleteDoc(ref);
+
+    // Nếu đang mở plan vừa xoá
+    // thì quay lại danh sách.
+    if (selectedPlan && selectedPlan.id === plan.id) {
+      setSelectedPlan(null);
+    }
   };
 
   // =====================================================
-  // KÉO THẢ PLAN
+  // DRAG PLAN
   // =====================================================
 
   const handlePlanDragEnd = async (event) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id) return;
+    if (!over || active.id === over.id) {
+      return;
+    }
 
     const oldIndex = plans.findIndex((item) => item.id === active.id);
 
     const newIndex = plans.findIndex((item) => item.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
 
     const newPlans = arrayMove(plans, oldIndex, newIndex);
 
@@ -127,23 +166,55 @@ function Plans({ roomId }) {
   }
 
   // =====================================================
-  // DANH SÁCH PLAN
+  // GIAO DIỆN CHÍNH
   // =====================================================
 
   return (
-    <div className="w-full max-w-[700px] mx-auto px-4 pt-4 pb-10">
+    <div
+      className="
+        w-full
+        max-w-[700px]
+        mx-auto
+        px-4
+        pt-4
+        pb-10
+      "
+    >
       {/* =================================================
           HEADER
       ================================================= */}
 
-      <div className="flex items-center justify-between mb-4">
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          mb-4
+        "
+      >
         <div>
-          <h1 className="text-2xl font-bold text-gray-700">Dự định</h1>
+          <h1
+            className="
+              text-2xl
+              font-bold
+              text-gray-700
+            "
+          >
+            Dự định
+          </h1>
 
-          <p className="text-sm text-gray-400 mt-1">
+          <p
+            className="
+              text-sm
+              text-gray-400
+              mt-1
+            "
+          >
             Những kế hoạch của hai đứa ❤️
           </p>
         </div>
+
+        {/* NÚT + */}
 
         <button
           onClick={() => setShowCreate(true)}
@@ -151,12 +222,16 @@ function Plans({ roomId }) {
             w-11
             h-11
             rounded-full
+
             bg-pink-500
             text-white
+
             flex
             items-center
             justify-center
+
             shadow-md
+
             active:scale-90
             transition
           "
@@ -166,122 +241,265 @@ function Plans({ roomId }) {
       </div>
 
       {/* =================================================
-          FORM TẠO PLAN
+          LOADING
       ================================================= */}
 
-      {showCreate && (
-        <div className="bg-white p-4 rounded-2xl shadow mb-4">
-          <input
-            autoFocus
-            value={newPlan}
-            onChange={(e) => setNewPlan(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                createPlan();
-              }
-            }}
-            placeholder="Nhập tên kế hoạch..."
+      {loading ? (
+        <div className="space-y-3">
+          {/* skeleton 1 */}
+
+          <div
             className="
-              border
-              border-gray-200
-              p-3
-              rounded-xl
-              w-full
-              outline-none
-              focus:ring-2
-              focus:ring-pink-300
-            "
-          />
-
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={createPlan}
-              className="
-                bg-pink-500
-                text-white
-                px-4
-                py-3
-                rounded-xl
-                flex-1
-                font-semibold
-                active:scale-95
-                transition
-              "
-            >
-              Tạo kế hoạch
-            </button>
-
-            <button
-              onClick={() => {
-                setShowCreate(false);
-                setNewPlan("");
-              }}
-              className="
-                bg-gray-100
-                text-gray-500
-                px-5
-                rounded-xl
-                active:scale-95
-              "
-            >
-              Huỷ
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* =================================================
-          EMPTY
-      ================================================= */}
-
-      {plans.length === 0 && (
-        <div className="bg-white p-8 rounded-2xl shadow text-center">
-          <div className="text-4xl mb-3">💕</div>
-
-          <p className="text-gray-400">Chưa có kế hoạch nào</p>
-
-          <button
-            onClick={() => setShowCreate(true)}
-            className="
-              mt-3
-              text-pink-500
-              font-semibold
+              bg-white
+              rounded-2xl
+              p-4
+              shadow-sm
+              animate-pulse
             "
           >
-            + Tạo kế hoạch
-          </button>
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+              "
+            >
+              <div
+                className="
+                  w-7
+                  h-7
+                  bg-gray-200
+                  rounded
+                "
+              />
+
+              <div className="flex-1">
+                <div
+                  className="
+                    h-5
+                    w-40
+                    bg-gray-200
+                    rounded
+                    mb-2
+                  "
+                />
+
+                <div
+                  className="
+                    h-3
+                    w-28
+                    bg-gray-100
+                    rounded
+                  "
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* skeleton 2 */}
+
+          <div
+            className="
+              bg-white
+              rounded-2xl
+              p-4
+              shadow-sm
+              animate-pulse
+            "
+          >
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+              "
+            >
+              <div
+                className="
+                  w-7
+                  h-7
+                  bg-gray-200
+                  rounded
+                "
+              />
+
+              <div className="flex-1">
+                <div
+                  className="
+                    h-5
+                    w-52
+                    bg-gray-200
+                    rounded
+                    mb-2
+                  "
+                />
+
+                <div
+                  className="
+                    h-3
+                    w-32
+                    bg-gray-100
+                    rounded
+                  "
+                />
+              </div>
+            </div>
+          </div>
         </div>
+      ) : (
+        <>
+          {/* =================================================
+              FORM TẠO PLAN
+          ================================================= */}
+
+          {showCreate && (
+            <div
+              className="
+                bg-white
+                p-4
+                rounded-2xl
+                shadow
+                mb-4
+              "
+            >
+              <input
+                autoFocus
+                value={newPlan}
+                onChange={(e) => setNewPlan(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    createPlan();
+                  }
+                }}
+                placeholder="
+                  Nhập tên kế hoạch...
+                "
+                className="
+                  border
+                  border-gray-200
+                  p-3
+                  rounded-xl
+                  w-full
+                  outline-none
+
+                  focus:ring-2
+                  focus:ring-pink-300
+                "
+              />
+
+              <div
+                className="
+                  flex
+                  gap-2
+                  mt-2
+                "
+              >
+                <button
+                  onClick={createPlan}
+                  className="
+                    bg-pink-500
+                    text-white
+                    px-4
+                    py-3
+                    rounded-xl
+                    flex-1
+                    font-semibold
+
+                    active:scale-95
+                    transition
+                  "
+                >
+                  Tạo kế hoạch
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowCreate(false);
+
+                    setNewPlan("");
+                  }}
+                  className="
+                    bg-gray-100
+                    text-gray-500
+                    px-5
+                    rounded-xl
+
+                    active:scale-95
+                  "
+                >
+                  Huỷ
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================
+              EMPTY
+          ================================================= */}
+
+          {plans.length === 0 && !showCreate && (
+            <div
+              className="
+                  bg-white
+                  p-8
+                  rounded-2xl
+                  shadow
+                  text-center
+                "
+            >
+              <div className="text-4xl mb-3">💕</div>
+
+              <p
+                className="
+                    text-gray-400
+                  "
+              >
+                Chưa có kế hoạch nào
+              </p>
+
+              <button
+                onClick={() => setShowCreate(true)}
+                className="
+                    mt-3
+                    text-pink-500
+                    font-semibold
+                  "
+              >
+                + Tạo kế hoạch
+              </button>
+            </div>
+          )}
+
+          {/* =================================================
+              LIST PLAN
+          ================================================= */}
+
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handlePlanDragEnd}
+          >
+            <SortableContext
+              items={plans.map((p) => p.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {plans.map((plan) => (
+                <SortablePlan
+                  key={plan.id}
+                  plan={plan}
+                  onClick={() => setSelectedPlan(plan)}
+                  onDelete={() => deletePlan(plan)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+        </>
       )}
-
-      {/* =================================================
-          LIST PLAN
-      ================================================= */}
-
-      <DndContext
-        collisionDetection={closestCenter}
-        onDragEnd={handlePlanDragEnd}
-      >
-        <SortableContext
-          items={plans.map((p) => p.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {plans.map((plan) => (
-            <SortablePlan
-              key={plan.id}
-              plan={plan}
-              onClick={() => setSelectedPlan(plan)}
-              onDelete={() => deletePlan(plan)}
-            />
-          ))}
-        </SortableContext>
-      </DndContext>
     </div>
   );
 }
 
 /* =========================================================
    PLAN CARD
-   Giữ giao diện card đơn giản giống style cũ
 ========================================================= */
 
 function SortablePlan({ plan, onClick, onDelete }) {
@@ -306,14 +524,21 @@ function SortablePlan({ plan, onClick, onDelete }) {
     },
 
     delta: 20,
+
     preventScrollOnSwipe: true,
   });
 
   const style = {
     transform: transform
-      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+      ? `translate3d(
+          ${transform.x}px,
+          ${transform.y}px,
+          0
+        )`
       : undefined,
+
     transition,
+
     touchAction: "pan-y",
   };
 
@@ -321,21 +546,31 @@ function SortablePlan({ plan, onClick, onDelete }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="relative overflow-hidden shadow-md mb-3 rounded-2xl"
+      className="
+        relative
+        overflow-hidden
+        shadow-md
+        mb-3
+        rounded-2xl
+      "
     >
-      {/* ==============================
+      {/* =================================================
           NỀN XOÁ
-      ============================== */}
+      ================================================= */}
 
       <div
         className="
           absolute
           inset-0
+
           bg-red-100
+
           flex
           justify-end
           items-center
+
           pr-4
+
           rounded-2xl
         "
       >
@@ -352,19 +587,22 @@ function SortablePlan({ plan, onClick, onDelete }) {
         </button>
       </div>
 
-      {/* ==============================
+      {/* =================================================
           CARD
-      ============================== */}
+      ================================================= */}
 
       <div
         {...handlers}
         className={`
           relative
+
           bg-white
           rounded-2xl
+
           pl-1
           pr-4
           py-4
+
           shadow-sm
 
           transition-transform
@@ -374,16 +612,25 @@ function SortablePlan({ plan, onClick, onDelete }) {
           ${swiped ? "-translate-x-24" : "translate-x-0"}
         `}
       >
-        <div className="flex items-center gap-3">
-          {/* DRAG HANDLE */}
+        <div
+          className="
+            flex
+            items-center
+            gap-3
+          "
+        >
+          {/* DRAG */}
 
           <div
             {...listeners}
             {...attributes}
             className="
               cursor-grab
+
               text-gray-400
+
               active:scale-95
+
               pr-2
               pl-1
               py-2
@@ -392,13 +639,13 @@ function SortablePlan({ plan, onClick, onDelete }) {
             <GripVertical size={28} />
           </div>
 
-          {/* PLAN */}
+          {/* CONTENT */}
 
           <button
             onClick={() => {
-              // Nếu đang swipe thì vuốt về trước
               if (swiped) {
                 setSwiped(false);
+
                 return;
               }
 
@@ -420,7 +667,15 @@ function SortablePlan({ plan, onClick, onDelete }) {
               {plan.title}
             </p>
 
-            <p className="text-xs text-gray-400 mt-1">Nhấn để xem lịch trình</p>
+            <p
+              className="
+                text-xs
+                text-gray-400
+                mt-1
+              "
+            >
+              Nhấn để xem lịch trình
+            </p>
           </button>
         </div>
       </div>
@@ -435,12 +690,14 @@ function SortablePlan({ plan, onClick, onDelete }) {
 function PlanDetail({ roomId, plan, onBack }) {
   const [schedules, setSchedules] = useState([]);
 
+  const [loading, setLoading] = useState(true);
+
   const [newSchedule, setNewSchedule] = useState("");
 
   const textareaRef = useRef(null);
 
   // =====================================================
-  // LOAD LỊCH TRÌNH
+  // LOAD SCHEDULE
   // =====================================================
 
   useEffect(() => {
@@ -455,14 +712,26 @@ function PlanDetail({ roomId, plan, onBack }) {
 
     const q = query(schedulesRef, orderBy("order", "asc"));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((item) => ({
-        id: item.id,
-        ...item.data(),
-      }));
+    const unsubscribe = onSnapshot(
+      q,
 
-      setSchedules(data);
-    });
+      (snapshot) => {
+        const data = snapshot.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+        }));
+
+        setSchedules(data);
+
+        setLoading(false);
+      },
+
+      (error) => {
+        console.error("Lỗi tải lịch trình:", error);
+
+        setLoading(false);
+      },
+    );
 
     return () => unsubscribe();
   }, [roomId, plan.id]);
@@ -510,7 +779,7 @@ function PlanDetail({ roomId, plan, onBack }) {
   };
 
   // =====================================================
-  // XOÁ LỊCH TRÌNH
+  // XOÁ
   // =====================================================
 
   const deleteSchedule = async (item) => {
@@ -520,7 +789,7 @@ function PlanDetail({ roomId, plan, onBack }) {
   };
 
   // =====================================================
-  // DONE / UNDONE
+  // CHECKBOX
   // =====================================================
 
   const toggleSchedule = async (item) => {
@@ -533,17 +802,23 @@ function PlanDetail({ roomId, plan, onBack }) {
   };
 
   // =====================================================
-  // DRAG LỊCH TRÌNH
+  // DRAG
   // =====================================================
 
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id) return;
+    if (!over || active.id === over.id) {
+      return;
+    }
 
     const oldIndex = schedules.findIndex((item) => item.id === active.id);
 
     const newIndex = schedules.findIndex((item) => item.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
 
     const newSchedules = arrayMove(schedules, oldIndex, newIndex);
 
@@ -560,28 +835,50 @@ function PlanDetail({ roomId, plan, onBack }) {
   };
 
   // =====================================================
-  // DETAIL UI
+  // UI
   // =====================================================
 
   return (
-    <div className="w-full max-w-[700px] mx-auto px-4 pt-4 pb-10">
+    <div
+      className="
+        w-full
+        max-w-[700px]
+        mx-auto
+        px-4
+        pt-4
+        pb-10
+      "
+    >
       {/* =================================================
           HEADER
       ================================================= */}
 
-      <div className="flex items-center gap-3 mb-4">
+      <div
+        className="
+          flex
+          items-center
+          gap-3
+          mb-4
+        "
+      >
         <button
           onClick={onBack}
           className="
             w-10
             h-10
+
             rounded-full
+
             bg-white
+
             shadow
+
             flex
             items-center
             justify-center
+
             text-gray-500
+
             active:scale-90
             transition
           "
@@ -592,16 +889,23 @@ function PlanDetail({ roomId, plan, onBack }) {
         <div className="min-w-0">
           <h1
             className="
-            text-xl
-            font-bold
-            text-gray-700
-            break-words
-          "
+              text-xl
+              font-bold
+              text-gray-700
+              break-words
+            "
           >
             {plan.title}
           </h1>
 
-          <p className="text-sm text-gray-400">Lịch trình</p>
+          <p
+            className="
+              text-sm
+              text-gray-400
+            "
+          >
+            Lịch trình
+          </p>
         </div>
       </div>
 
@@ -609,22 +913,38 @@ function PlanDetail({ roomId, plan, onBack }) {
           INPUT
       ================================================= */}
 
-      <div className="bg-white p-4 rounded-2xl shadow mb-4">
+      <div
+        className="
+          bg-white
+          p-4
+          rounded-2xl
+          shadow
+          mb-4
+        "
+      >
         <textarea
           ref={textareaRef}
           value={newSchedule}
           onChange={(e) => setNewSchedule(e.target.value)}
-          placeholder="Nhập lịch trình..."
+          placeholder="
+            Nhập lịch trình...
+          "
           className="
             border
             border-gray-200
+
             p-3
+
             rounded-xl
+
             w-full
             mb-2
+
             resize-none
             overflow-hidden
+
             outline-none
+
             focus:ring-2
             focus:ring-pink-300
           "
@@ -634,13 +954,20 @@ function PlanDetail({ roomId, plan, onBack }) {
           onClick={addSchedule}
           className="
             bg-pink-500
+
             text-white
+
             px-4
             py-3
+
             rounded-xl
+
             w-full
+
             font-semibold
+
             active:scale-95
+
             transition
           "
         >
@@ -652,41 +979,78 @@ function PlanDetail({ roomId, plan, onBack }) {
           LIST
       ================================================= */}
 
-      <div className="bg-white p-4 rounded-2xl shadow">
+      <div
+        className="
+          bg-white
+          p-4
+          rounded-2xl
+          shadow
+        "
+      >
         <h2 className="font-bold mb-2">Lịch trình</h2>
 
-        {schedules.length === 0 && (
-          <div
-            className="
-            py-8
-            text-center
-            text-gray-400
-          "
-          >
-            Chưa có lịch trình nào
-          </div>
-        )}
+        {/* LOADING */}
 
-        <DndContext
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={schedules.map((p) => p.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {schedules.map((item) => (
-              <SortableSchedule
-                key={item.id}
-                item={item}
-                toggleSchedule={toggleSchedule}
-                deleteSchedule={deleteSchedule}
-                roomId={roomId}
-                planId={plan.id}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
+        {loading ? (
+          <div className="space-y-3">
+            <div
+              className="
+                h-16
+                bg-gray-100
+                rounded-2xl
+                animate-pulse
+              "
+            />
+
+            <div
+              className="
+                h-16
+                bg-gray-100
+                rounded-2xl
+                animate-pulse
+              "
+            />
+          </div>
+        ) : (
+          <>
+            {/* EMPTY */}
+
+            {schedules.length === 0 && (
+              <div
+                className="
+                  py-8
+                  text-center
+                  text-gray-400
+                "
+              >
+                Chưa có lịch trình nào
+              </div>
+            )}
+
+            {/* LIST */}
+
+            <DndContext
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={schedules.map((p) => p.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {schedules.map((item) => (
+                  <SortableSchedule
+                    key={item.id}
+                    item={item}
+                    toggleSchedule={toggleSchedule}
+                    deleteSchedule={deleteSchedule}
+                    roomId={roomId}
+                    planId={plan.id}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+          </>
+        )}
       </div>
     </div>
   );
@@ -710,9 +1074,15 @@ function SortableSchedule({
 
   const style = {
     transform: transform
-      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+      ? `translate3d(
+          ${transform.x}px,
+          ${transform.y}px,
+          0
+        )`
       : undefined,
+
     transition,
+
     touchAction: "pan-y",
   };
 
@@ -735,7 +1105,7 @@ function SortableSchedule({
 
 /* =========================================================
    PLAN ITEM
-   GIỮ GẦN NHƯ NGUYÊN GIAO DIỆN CŨ CỦA M
+   GIỮ GIAO DIỆN CŨ
 ========================================================= */
 
 function PlanItem({
@@ -755,7 +1125,7 @@ function PlanItem({
   const textareaRef = useRef(null);
 
   // =====================================================
-  // AUTO RESIZE EDIT
+  // AUTO RESIZE
   // =====================================================
 
   useEffect(() => {
@@ -807,28 +1177,42 @@ function PlanItem({
   };
 
   return (
-    <div className="relative overflow-hidden shadow-md mb-3 rounded-2xl">
+    <div
+      className="
+        relative
+        overflow-hidden
+        shadow-md
+        mb-3
+        rounded-2xl
+      "
+    >
       {/* =================================================
           NỀN XOÁ
       ================================================= */}
 
       <div
         className="
-        absolute
-        inset-0
-        bg-red-100
-        flex
-        justify-end
-        items-center
-        pr-4
-        rounded-2xl
-      "
+          absolute
+          inset-0
+
+          bg-red-100
+
+          flex
+          justify-end
+          items-center
+
+          pr-4
+
+          rounded-2xl
+        "
       >
         <button
           onClick={() => deleteSchedule(item)}
           className="
             text-red-500
             font-semibold
+            px-3
+            py-2
           "
         >
           Xoá
@@ -844,10 +1228,13 @@ function PlanItem({
         className={`
           bg-white
           rounded-2xl
+
           pl-1
           pr-4
           py-4
+
           shadow-sm
+
           transition-transform
           duration-200
           ease-out
@@ -855,11 +1242,13 @@ function PlanItem({
           ${swiped ? "-translate-x-24" : "translate-x-0"}
         `}
       >
-        {/* =================================================
-            LAYOUT 3 CỘT
-        ================================================= */}
-
-        <div className="flex items-start gap-3">
+        <div
+          className="
+            flex
+            items-start
+            gap-3
+          "
+        >
           {/* DRAG HANDLE */}
 
           <div
@@ -867,12 +1256,17 @@ function PlanItem({
             {...dragHandle.attributes}
             className="
               cursor-grab
+
               text-gray-400
+
               active:scale-95
+
               pr-2
               pl-1
               py-2
+
               mt-1
+
               self-center
             "
           >
@@ -881,10 +1275,22 @@ function PlanItem({
 
           {/* CONTENT */}
 
-          <div className="flex-1 min-w-0">
+          <div
+            className="
+              flex-1
+              min-w-0
+            "
+          >
             {/* STATUS */}
 
-            <div className="flex items-center gap-2 mb-2">
+            <div
+              className="
+                flex
+                items-center
+                gap-2
+                mb-2
+              "
+            >
               <input
                 type="checkbox"
                 checked={item.done}
@@ -896,7 +1302,12 @@ function PlanItem({
                 "
               />
 
-              <p className="text-sm text-gray-400">
+              <p
+                className="
+                  text-sm
+                  text-gray-400
+                "
+              >
                 {item.done ? "Đã xong" : "Chưa xong"}
               </p>
             </div>
@@ -911,13 +1322,19 @@ function PlanItem({
                 onChange={(e) => setEditText(e.target.value)}
                 className="
                   border
+
                   rounded-lg
+
                   px-3
                   py-2
+
                   w-full
+
                   resize-none
                   overflow-hidden
+
                   outline-none
+
                   focus:ring-2
                   focus:ring-pink-300
                 "
@@ -942,8 +1359,11 @@ function PlanItem({
             onClick={editing ? handleSave : () => setEditing(true)}
             className="
               text-blue-400
+
               text-xs
+
               whitespace-nowrap
+
               mt-1
             "
           >
