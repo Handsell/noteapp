@@ -223,7 +223,7 @@ function Home({ days }) {
                     whitespace-nowrap
                   "
                 >
-                  ♀ 25
+                  ♂ 25
                 </span>
 
                 <span
