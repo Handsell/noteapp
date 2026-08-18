@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-
 import { useSwipeable } from "react-swipeable";
 
 import {
@@ -27,28 +26,26 @@ import {
 
 import { GripVertical, ArrowLeft, Plus } from "lucide-react";
 
+/* =========================================================
+   PLANS
+========================================================= */
+
 function Plans({ roomId }) {
-  // =====================================================
-  // STATE
-  // =====================================================
-
   const [plans, setPlans] = useState([]);
-
   const [loading, setLoading] = useState(true);
+  const [editingPlan, setEditingPlan] = useState(null);
 
   const [selectedPlan, setSelectedPlan] = useState(null);
 
-  const [showCreate, setShowCreate] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
+  const [showCreate, setShowCreate] = useState(false);
   const [newPlan, setNewPlan] = useState("");
 
-  // =====================================================
-  // LOAD PLANS
-  //
-  // Quan trọng:
-  // Component Plans không bị unmount khi đổi tab
-  // nên listener này chỉ chạy 1 lần.
-  // =====================================================
+  /* =======================================================
+     LOAD PLANS
+  ======================================================= */
 
   useEffect(() => {
     const plansRef = collection(db, "rooms", roomId, "plans");
@@ -57,7 +54,6 @@ function Plans({ roomId }) {
 
     const unsubscribe = onSnapshot(
       q,
-
       (snapshot) => {
         const data = snapshot.docs.map((item) => ({
           id: item.id,
@@ -65,15 +61,10 @@ function Plans({ roomId }) {
         }));
 
         setPlans(data);
-
-        // Chỉ tắt loading sau khi Firebase
-        // trả dữ liệu lần đầu.
         setLoading(false);
       },
-
       (error) => {
         console.error("Lỗi tải plans:", error);
-
         setLoading(false);
       },
     );
@@ -81,49 +72,65 @@ function Plans({ roomId }) {
     return () => unsubscribe();
   }, [roomId]);
 
-  // =====================================================
-  // TẠO PLAN
-  // =====================================================
+  /* =======================================================
+     TẠO PLAN
+  ======================================================= */
 
   const createPlan = async () => {
     const title = newPlan.trim();
 
     if (!title) return;
 
-    const plansRef = collection(db, "rooms", roomId, "plans");
+    if (!startDate || !endDate) {
+      alert("Vui lòng chọn thời gian cho kế hoạch");
+      return;
+    }
 
-    await addDoc(plansRef, {
-      title,
+    try {
+      const plansRef = collection(db, "rooms", roomId, "plans");
 
-      createdAt: serverTimestamp(),
+      await addDoc(plansRef, {
+        title,
 
-      order: Date.now(),
-    });
+        startDate,
+        endDate,
 
-    setNewPlan("");
+        createdAt: serverTimestamp(),
+        order: Date.now(),
+      });
 
-    setShowCreate(false);
-  };
-
-  // =====================================================
-  // XOÁ PLAN
-  // =====================================================
-
-  const deletePlan = async (plan) => {
-    const ref = doc(db, "rooms", roomId, "plans", plan.id);
-
-    await deleteDoc(ref);
-
-    // Nếu đang mở plan vừa xoá
-    // thì quay lại danh sách.
-    if (selectedPlan && selectedPlan.id === plan.id) {
-      setSelectedPlan(null);
+      setNewPlan("");
+      setStartDate("");
+      setEndDate("");
+      setShowCreate(false);
+    } catch (error) {
+      console.error("Lỗi tạo plan:", error);
     }
   };
 
-  // =====================================================
-  // DRAG PLAN
-  // =====================================================
+  /* =======================================================
+     XÓA PLAN
+     
+     Lưu ý:
+     Firestore không tự xóa schedules bên trong.
+     Hàm này sẽ xóa Plan.
+  ======================================================= */
+
+  const deletePlan = async (plan) => {
+    try {
+      await deleteDoc(doc(db, "rooms", roomId, "plans", plan.id));
+
+      if (selectedPlan && selectedPlan.id === plan.id) {
+        setSelectedPlan(null);
+      }
+    } catch (error) {
+      console.error("Lỗi xóa plan:", error);
+    }
+  };
+
+  /* =======================================================
+     DRAG PLAN
+  ======================================================= */
 
   const handlePlanDragEnd = async (event) => {
     const { active, over } = event;
@@ -142,18 +149,25 @@ function Plans({ roomId }) {
 
     const newPlans = arrayMove(plans, oldIndex, newIndex);
 
-    await Promise.all(
-      newPlans.map((item, index) =>
-        updateDoc(doc(db, "rooms", roomId, "plans", item.id), {
-          order: index,
-        }),
-      ),
-    );
+    // Cập nhật UI ngay
+    setPlans(newPlans);
+
+    try {
+      await Promise.all(
+        newPlans.map((item, index) =>
+          updateDoc(doc(db, "rooms", roomId, "plans", item.id), {
+            order: index,
+          }),
+        ),
+      );
+    } catch (error) {
+      console.error("Lỗi sắp xếp plan:", error);
+    }
   };
 
-  // =====================================================
-  // NẾU ĐANG XEM CHI TIẾT PLAN
-  // =====================================================
+  /* =======================================================
+     CHI TIẾT PLAN
+  ======================================================= */
 
   if (selectedPlan) {
     return (
@@ -165,9 +179,19 @@ function Plans({ roomId }) {
     );
   }
 
-  // =====================================================
-  // GIAO DIỆN CHÍNH
-  // =====================================================
+  if (editingPlan) {
+    return (
+      <EditPlan
+        roomId={roomId}
+        plan={editingPlan}
+        onBack={() => setEditingPlan(null)}
+        onSaved={() => setEditingPlan(null)}
+      />
+    );
+  }
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <div
@@ -214,7 +238,7 @@ function Plans({ roomId }) {
           </p>
         </div>
 
-        {/* NÚT + */}
+        {/* NÚT TẠO PLAN */}
 
         <button
           onClick={() => setShowCreate(true)}
@@ -222,16 +246,12 @@ function Plans({ roomId }) {
             w-11
             h-11
             rounded-full
-
             bg-pink-500
             text-white
-
             flex
             items-center
             justify-center
-
             shadow-md
-
             active:scale-90
             transition
           "
@@ -241,198 +261,160 @@ function Plans({ roomId }) {
       </div>
 
       {/* =================================================
+          FORM TẠO PLAN
+      ================================================= */}
+
+      {showCreate && (
+        <div
+          className="
+      bg-white
+      p-4
+      rounded-2xl
+      shadow
+      mb-4
+    "
+        >
+          {/* TÊN PLAN */}
+
+          <input
+            autoFocus
+            value={newPlan}
+            onChange={(e) => setNewPlan(e.target.value)}
+            placeholder="Nhập tên kế hoạch..."
+            className="
+        border
+        border-gray-200
+        p-3
+        rounded-xl
+        w-full
+        outline-none
+        focus:ring-2
+        focus:ring-pink-300
+        mb-3
+      "
+          />
+
+          {/* THỜI GIAN */}
+
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {/* NGÀY BẮT ĐẦU */}
+
+            <div>
+              <label
+                className="
+            block
+            text-xs
+            text-gray-400
+            mb-1
+          "
+              >
+                Từ ngày
+              </label>
+
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="
+            border
+            border-gray-200
+            p-3
+            rounded-xl
+            w-full
+            outline-none
+            focus:ring-2
+            focus:ring-pink-300
+            text-sm
+          "
+              />
+            </div>
+
+            {/* NGÀY KẾT THÚC */}
+
+            <div>
+              <label
+                className="
+            block
+            text-xs
+            text-gray-400
+            mb-1
+          "
+              >
+                Đến ngày
+              </label>
+
+              <input
+                type="date"
+                value={endDate}
+                min={startDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="
+            border
+            border-gray-200
+            p-3
+            rounded-xl
+            w-full
+            outline-none
+            focus:ring-2
+            focus:ring-pink-300
+            text-sm
+          "
+              />
+            </div>
+          </div>
+
+          {/* BUTTON */}
+
+          <div className="flex gap-2">
+            <button
+              onClick={createPlan}
+              className="
+          bg-pink-500
+          text-white
+          px-4
+          py-3
+          rounded-xl
+          flex-1
+          font-semibold
+          active:scale-95
+          transition
+        "
+            >
+              Tạo kế hoạch
+            </button>
+
+            <button
+              onClick={() => {
+                setShowCreate(false);
+                setNewPlan("");
+                setStartDate("");
+                setEndDate("");
+              }}
+              className="
+          bg-gray-100
+          text-gray-500
+          px-5
+          rounded-xl
+          active:scale-95
+        "
+            >
+              Huỷ
+            </button>
+          </div>
+        </div>
+      )}
+      {/* =================================================
           LOADING
       ================================================= */}
 
       {loading ? (
         <div className="space-y-3">
-          {/* skeleton 1 */}
+          <PlanSkeleton />
 
-          <div
-            className="
-              bg-white
-              rounded-2xl
-              p-4
-              shadow-sm
-              animate-pulse
-            "
-          >
-            <div
-              className="
-                flex
-                items-center
-                gap-3
-              "
-            >
-              <div
-                className="
-                  w-7
-                  h-7
-                  bg-gray-200
-                  rounded
-                "
-              />
-
-              <div className="flex-1">
-                <div
-                  className="
-                    h-5
-                    w-40
-                    bg-gray-200
-                    rounded
-                    mb-2
-                  "
-                />
-
-                <div
-                  className="
-                    h-3
-                    w-28
-                    bg-gray-100
-                    rounded
-                  "
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* skeleton 2 */}
-
-          <div
-            className="
-              bg-white
-              rounded-2xl
-              p-4
-              shadow-sm
-              animate-pulse
-            "
-          >
-            <div
-              className="
-                flex
-                items-center
-                gap-3
-              "
-            >
-              <div
-                className="
-                  w-7
-                  h-7
-                  bg-gray-200
-                  rounded
-                "
-              />
-
-              <div className="flex-1">
-                <div
-                  className="
-                    h-5
-                    w-52
-                    bg-gray-200
-                    rounded
-                    mb-2
-                  "
-                />
-
-                <div
-                  className="
-                    h-3
-                    w-32
-                    bg-gray-100
-                    rounded
-                  "
-                />
-              </div>
-            </div>
-          </div>
+          <PlanSkeleton />
         </div>
       ) : (
         <>
-          {/* =================================================
-              FORM TẠO PLAN
-          ================================================= */}
-
-          {showCreate && (
-            <div
-              className="
-                bg-white
-                p-4
-                rounded-2xl
-                shadow
-                mb-4
-              "
-            >
-              <input
-                autoFocus
-                value={newPlan}
-                onChange={(e) => setNewPlan(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    createPlan();
-                  }
-                }}
-                placeholder="
-                  Nhập tên kế hoạch...
-                "
-                className="
-                  border
-                  border-gray-200
-                  p-3
-                  rounded-xl
-                  w-full
-                  outline-none
-
-                  focus:ring-2
-                  focus:ring-pink-300
-                "
-              />
-
-              <div
-                className="
-                  flex
-                  gap-2
-                  mt-2
-                "
-              >
-                <button
-                  onClick={createPlan}
-                  className="
-                    bg-pink-500
-                    text-white
-                    px-4
-                    py-3
-                    rounded-xl
-                    flex-1
-                    font-semibold
-
-                    active:scale-95
-                    transition
-                  "
-                >
-                  Tạo kế hoạch
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowCreate(false);
-
-                    setNewPlan("");
-                  }}
-                  className="
-                    bg-gray-100
-                    text-gray-500
-                    px-5
-                    rounded-xl
-
-                    active:scale-95
-                  "
-                >
-                  Huỷ
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* =================================================
               EMPTY
           ================================================= */}
@@ -440,30 +422,24 @@ function Plans({ roomId }) {
           {plans.length === 0 && !showCreate && (
             <div
               className="
-                  bg-white
-                  p-8
-                  rounded-2xl
-                  shadow
-                  text-center
-                "
+                bg-white
+                p-8
+                rounded-2xl
+                shadow
+                text-center
+              "
             >
               <div className="text-4xl mb-3">💕</div>
 
-              <p
-                className="
-                    text-gray-400
-                  "
-              >
-                Chưa có kế hoạch nào
-              </p>
+              <p className="text-gray-400">Chưa có kế hoạch nào</p>
 
               <button
                 onClick={() => setShowCreate(true)}
                 className="
-                    mt-3
-                    text-pink-500
-                    font-semibold
-                  "
+                  mt-3
+                  text-pink-500
+                  font-semibold
+                "
               >
                 + Tạo kế hoạch
               </button>
@@ -486,8 +462,15 @@ function Plans({ roomId }) {
                 <SortablePlan
                   key={plan.id}
                   plan={plan}
-                  onClick={() => setSelectedPlan(plan)}
-                  onDelete={() => deletePlan(plan)}
+                  onClick={() => {
+                    setSelectedPlan(plan);
+                  }}
+                  onDelete={() => {
+                    deletePlan(plan);
+                  }}
+                  onUpdate={() => {
+                    setEditingPlan(plan);
+                  }}
                 />
               ))}
             </SortableContext>
@@ -497,12 +480,342 @@ function Plans({ roomId }) {
     </div>
   );
 }
+function EditPlan({ roomId, plan, onBack, onSaved }) {
+  const [title, setTitle] = useState(plan.title || "");
 
+  const [startDate, setStartDate] = useState(plan.startDate || "");
+
+  const [endDate, setEndDate] = useState(plan.endDate || "");
+
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!title.trim()) {
+      alert("Vui lòng nhập tên kế hoạch");
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      alert("Vui lòng chọn thời gian");
+      return;
+    }
+
+    if (endDate < startDate) {
+      alert("Ngày kết thúc không được trước ngày bắt đầu");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await updateDoc(doc(db, "rooms", roomId, "plans", plan.id), {
+        title: title.trim(),
+        startDate,
+        endDate,
+      });
+
+      onSaved();
+    } catch (error) {
+      console.error("Lỗi sửa plan:", error);
+
+      alert("Không thể lưu thay đổi");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="
+        w-full
+        max-w-[700px]
+        mx-auto
+        px-4
+        pt-4
+        pb-10
+      "
+    >
+      {/* HEADER */}
+
+      <div
+        className="
+          flex
+          items-center
+          gap-3
+          mb-5
+        "
+      >
+        <button
+          onClick={onBack}
+          className="
+            w-10
+            h-10
+            rounded-full
+            bg-white
+            shadow
+            flex
+            items-center
+            justify-center
+            text-gray-500
+            active:scale-90
+            transition
+          "
+        >
+          <ArrowLeft size={20} />
+        </button>
+
+        <div>
+          <h1
+            className="
+              text-xl
+              font-bold
+              text-gray-700
+            "
+          >
+            Sửa kế hoạch
+          </h1>
+
+          <p
+            className="
+              text-sm
+              text-gray-400
+            "
+          >
+            Chỉnh sửa thông tin kế hoạch
+          </p>
+        </div>
+      </div>
+
+      {/* FORM */}
+
+      <div
+        className="
+          bg-white
+          p-4
+          rounded-2xl
+          shadow
+        "
+      >
+        {/* TÊN */}
+
+        <label
+          className="
+            block
+            text-sm
+            font-medium
+            text-gray-600
+            mb-1
+          "
+        >
+          Tên kế hoạch
+        </label>
+
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="
+            border
+            border-gray-200
+            p-3
+            rounded-xl
+            w-full
+            outline-none
+            focus:ring-2
+            focus:ring-pink-300
+            mb-4
+          "
+        />
+
+        {/* NGÀY */}
+
+        <div
+          className="
+            grid
+            grid-cols-2
+            gap-3
+          "
+        >
+          {/* START */}
+
+          <div>
+            <label
+              className="
+                block
+                text-xs
+                text-gray-400
+                mb-1
+              "
+            >
+              Từ ngày
+            </label>
+
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="
+                border
+                border-gray-200
+                p-3
+                rounded-xl
+                w-full
+                outline-none
+                focus:ring-2
+                focus:ring-pink-300
+                text-sm
+              "
+            />
+          </div>
+
+          {/* END */}
+
+          <div>
+            <label
+              className="
+                block
+                text-xs
+                text-gray-400
+                mb-1
+              "
+            >
+              Đến ngày
+            </label>
+
+            <input
+              type="date"
+              min={startDate}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="
+                border
+                border-gray-200
+                p-3
+                rounded-xl
+                w-full
+                outline-none
+                focus:ring-2
+                focus:ring-pink-300
+                text-sm
+              "
+            />
+          </div>
+        </div>
+
+        {/* BUTTON */}
+
+        <div
+          className="
+            flex
+            gap-2
+            mt-5
+          "
+        >
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="
+              bg-pink-500
+              text-white
+              px-4
+              py-3
+              rounded-xl
+              flex-1
+              font-semibold
+              active:scale-95
+              transition
+              disabled:opacity-50
+            "
+          >
+            {saving ? "Đang lưu..." : "Lưu thay đổi"}
+          </button>
+
+          <button
+            onClick={onBack}
+            disabled={saving}
+            className="
+              bg-gray-100
+              text-gray-500
+              px-5
+              rounded-xl
+              active:scale-95
+              disabled:opacity-50
+            "
+          >
+            Huỷ
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 /* =========================================================
-   PLAN CARD
+   PLAN SKELETON
 ========================================================= */
 
-function SortablePlan({ plan, onClick, onDelete }) {
+function PlanSkeleton() {
+  return (
+    <div
+      className="
+        bg-white
+        rounded-2xl
+        p-4
+        shadow-sm
+        animate-pulse
+      "
+    >
+      <div
+        className="
+          flex
+          items-center
+          gap-3
+        "
+      >
+        <div
+          className="
+            w-7
+            h-7
+            rounded
+            bg-gray-200
+          "
+        />
+
+        <div className="flex-1">
+          <div
+            className="
+              h-5
+              w-40
+              bg-gray-200
+              rounded
+              mb-2
+            "
+          />
+
+          <div
+            className="
+              h-3
+              w-28
+              bg-gray-100
+              rounded
+            "
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   SORTABLE PLAN
+========================================================= */
+function formatDate(dateString) {
+  if (!dateString) return "";
+
+  const [year, month, day] = dateString.split("-");
+
+  return `${day}/${month}/${year}`;
+}
+
+function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
   const [swiped, setSwiped] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -524,21 +837,14 @@ function SortablePlan({ plan, onClick, onDelete }) {
     },
 
     delta: 20,
-
     preventScrollOnSwipe: true,
   });
 
   const style = {
     transform: transform
-      ? `translate3d(
-          ${transform.x}px,
-          ${transform.y}px,
-          0
-        )`
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
       : undefined,
-
     transition,
-
     touchAction: "pan-y",
   };
 
@@ -554,28 +860,26 @@ function SortablePlan({ plan, onClick, onDelete }) {
         rounded-2xl
       "
     >
-      {/* =================================================
-          NỀN XOÁ
-      ================================================= */}
+      {/* ================= NỀN XOÁ ================= */}
 
       <div
         className="
           absolute
           inset-0
-
           bg-red-100
-
           flex
           justify-end
           items-center
-
           pr-4
-
           rounded-2xl
         "
       >
         <button
-          onClick={onDelete}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+            setSwiped(false);
+          }}
           className="
             text-red-500
             font-semibold
@@ -587,24 +891,18 @@ function SortablePlan({ plan, onClick, onDelete }) {
         </button>
       </div>
 
-      {/* =================================================
-          CARD
-      ================================================= */}
+      {/* ================= CARD ================= */}
 
       <div
         {...handlers}
         className={`
           relative
-
           bg-white
           rounded-2xl
-
           pl-1
-          pr-4
+          pr-3
           py-4
-
           shadow-sm
-
           transition-transform
           duration-200
           ease-out
@@ -619,33 +917,30 @@ function SortablePlan({ plan, onClick, onDelete }) {
             gap-3
           "
         >
-          {/* DRAG */}
+          {/* ================= DRAG ================= */}
 
           <div
             {...listeners}
             {...attributes}
             className="
               cursor-grab
-
               text-gray-400
-
               active:scale-95
-
               pr-2
               pl-1
               py-2
+              shrink-0
             "
           >
             <GripVertical size={28} />
           </div>
 
-          {/* CONTENT */}
+          {/* ================= CONTENT ================= */}
 
           <button
             onClick={() => {
               if (swiped) {
                 setSwiped(false);
-
                 return;
               }
 
@@ -657,6 +952,8 @@ function SortablePlan({ plan, onClick, onDelete }) {
               text-left
             "
           >
+            {/* TÊN */}
+
             <p
               className="
                 text-gray-700
@@ -667,6 +964,32 @@ function SortablePlan({ plan, onClick, onDelete }) {
               {plan.title}
             </p>
 
+            {/* THỜI GIAN */}
+
+            {plan.startDate && plan.endDate && (
+              <p
+                className="
+                    text-xs
+                    text-pink-400
+                    mt-1
+                    flex
+                    items-center
+                    gap-1
+                    flex-wrap
+                  "
+              >
+                <span>📅</span>
+
+                <span>
+                  {formatDate(plan.startDate)}
+                  {" → "}
+                  {formatDate(plan.endDate)}
+                </span>
+              </p>
+            )}
+
+            {/* SUB TEXT */}
+
             <p
               className="
                 text-xs
@@ -676,6 +999,28 @@ function SortablePlan({ plan, onClick, onDelete }) {
             >
               Nhấn để xem lịch trình
             </p>
+          </button>
+
+          {/* ================= SỬA ================= */}
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdate();
+            }}
+            className="
+              text-blue-400
+              text-xs
+              font-medium
+              whitespace-nowrap
+              px-2
+              py-2
+              shrink-0
+              active:scale-90
+              transition
+            "
+          >
+            Sửa
           </button>
         </div>
       </div>
@@ -696,9 +1041,9 @@ function PlanDetail({ roomId, plan, onBack }) {
 
   const textareaRef = useRef(null);
 
-  // =====================================================
-  // LOAD SCHEDULE
-  // =====================================================
+  /* =======================================================
+     LOAD SCHEDULE
+  ======================================================= */
 
   useEffect(() => {
     const schedulesRef = collection(
@@ -714,7 +1059,6 @@ function PlanDetail({ roomId, plan, onBack }) {
 
     const unsubscribe = onSnapshot(
       q,
-
       (snapshot) => {
         const data = snapshot.docs.map((item) => ({
           id: item.id,
@@ -722,10 +1066,8 @@ function PlanDetail({ roomId, plan, onBack }) {
         }));
 
         setSchedules(data);
-
         setLoading(false);
       },
-
       (error) => {
         console.error("Lỗi tải lịch trình:", error);
 
@@ -736,9 +1078,9 @@ function PlanDetail({ roomId, plan, onBack }) {
     return () => unsubscribe();
   }, [roomId, plan.id]);
 
-  // =====================================================
-  // AUTO RESIZE
-  // =====================================================
+  /* =======================================================
+     AUTO RESIZE
+  ======================================================= */
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -749,63 +1091,75 @@ function PlanDetail({ roomId, plan, onBack }) {
     }
   }, [newSchedule]);
 
-  // =====================================================
-  // THÊM LỊCH TRÌNH
-  // =====================================================
+  /* =======================================================
+     ADD SCHEDULE
+  ======================================================= */
 
   const addSchedule = async () => {
     if (!newSchedule.trim()) return;
 
-    const schedulesRef = collection(
-      db,
-      "rooms",
-      roomId,
-      "plans",
-      plan.id,
-      "schedules",
-    );
+    try {
+      const schedulesRef = collection(
+        db,
+        "rooms",
+        roomId,
+        "plans",
+        plan.id,
+        "schedules",
+      );
 
-    await addDoc(schedulesRef, {
-      text: newSchedule.trim(),
+      await addDoc(schedulesRef, {
+        text: newSchedule.trim(),
 
-      done: false,
+        done: false,
 
-      createdAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
 
-      order: Date.now(),
-    });
+        order: Date.now(),
+      });
 
-    setNewSchedule("");
+      setNewSchedule("");
+    } catch (error) {
+      console.error("Lỗi thêm lịch trình:", error);
+    }
   };
 
-  // =====================================================
-  // XOÁ
-  // =====================================================
+  /* =======================================================
+     DELETE SCHEDULE
+  ======================================================= */
 
   const deleteSchedule = async (item) => {
-    await deleteDoc(
-      doc(db, "rooms", roomId, "plans", plan.id, "schedules", item.id),
-    );
+    try {
+      await deleteDoc(
+        doc(db, "rooms", roomId, "plans", plan.id, "schedules", item.id),
+      );
+    } catch (error) {
+      console.error("Lỗi xóa lịch trình:", error);
+    }
   };
 
-  // =====================================================
-  // CHECKBOX
-  // =====================================================
+  /* =======================================================
+     TOGGLE SCHEDULE
+  ======================================================= */
 
   const toggleSchedule = async (item) => {
-    await updateDoc(
-      doc(db, "rooms", roomId, "plans", plan.id, "schedules", item.id),
-      {
-        done: !item.done,
-      },
-    );
+    try {
+      await updateDoc(
+        doc(db, "rooms", roomId, "plans", plan.id, "schedules", item.id),
+        {
+          done: !item.done,
+        },
+      );
+    } catch (error) {
+      console.error("Lỗi cập nhật:", error);
+    }
   };
 
-  // =====================================================
-  // DRAG
-  // =====================================================
+  /* =======================================================
+     DRAG SCHEDULE
+  ======================================================= */
 
-  const handleDragEnd = async (event) => {
+  const handleScheduleDragEnd = async (event) => {
     const { active, over } = event;
 
     if (!over || active.id === over.id) {
@@ -822,21 +1176,27 @@ function PlanDetail({ roomId, plan, onBack }) {
 
     const newSchedules = arrayMove(schedules, oldIndex, newIndex);
 
-    await Promise.all(
-      newSchedules.map((item, index) =>
-        updateDoc(
-          doc(db, "rooms", roomId, "plans", plan.id, "schedules", item.id),
-          {
-            order: index,
-          },
+    setSchedules(newSchedules);
+
+    try {
+      await Promise.all(
+        newSchedules.map((item, index) =>
+          updateDoc(
+            doc(db, "rooms", roomId, "plans", plan.id, "schedules", item.id),
+            {
+              order: index,
+            },
+          ),
         ),
-      ),
-    );
+      );
+    } catch (error) {
+      console.error("Lỗi sắp xếp:", error);
+    }
   };
 
-  // =====================================================
-  // UI
-  // =====================================================
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <div
@@ -866,21 +1226,16 @@ function PlanDetail({ roomId, plan, onBack }) {
           className="
             w-10
             h-10
-
             rounded-full
-
             bg-white
-
             shadow
-
             flex
             items-center
             justify-center
-
             text-gray-500
-
             active:scale-90
             transition
+            shrink-0
           "
         >
           <ArrowLeft size={20} />
@@ -926,25 +1281,17 @@ function PlanDetail({ roomId, plan, onBack }) {
           ref={textareaRef}
           value={newSchedule}
           onChange={(e) => setNewSchedule(e.target.value)}
-          placeholder="
-            Nhập lịch trình...
-          "
+          placeholder="Nhập lịch trình..."
           className="
             border
             border-gray-200
-
             p-3
-
             rounded-xl
-
             w-full
             mb-2
-
             resize-none
             overflow-hidden
-
             outline-none
-
             focus:ring-2
             focus:ring-pink-300
           "
@@ -954,20 +1301,13 @@ function PlanDetail({ roomId, plan, onBack }) {
           onClick={addSchedule}
           className="
             bg-pink-500
-
             text-white
-
             px-4
             py-3
-
             rounded-xl
-
             w-full
-
             font-semibold
-
             active:scale-95
-
             transition
           "
         >
@@ -1031,10 +1371,10 @@ function PlanDetail({ roomId, plan, onBack }) {
 
             <DndContext
               collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+              onDragEnd={handleScheduleDragEnd}
             >
               <SortableContext
-                items={schedules.map((p) => p.id)}
+                items={schedules.map((item) => item.id)}
                 strategy={verticalListSortingStrategy}
               >
                 {schedules.map((item) => (
@@ -1124,9 +1464,9 @@ function PlanItem({
 
   const textareaRef = useRef(null);
 
-  // =====================================================
-  // AUTO RESIZE
-  // =====================================================
+  /* =======================================================
+     AUTO RESIZE
+  ======================================================= */
 
   useEffect(() => {
     if (editing && textareaRef.current) {
@@ -1137,9 +1477,9 @@ function PlanItem({
     }
   }, [editing]);
 
-  // =====================================================
-  // SWIPE
-  // =====================================================
+  /* =======================================================
+     SWIPE
+  ======================================================= */
 
   const handlers = useSwipeable({
     onSwipedLeft: (e) => {
@@ -1159,21 +1499,25 @@ function PlanItem({
     preventScrollOnSwipe: true,
   });
 
-  // =====================================================
-  // SAVE
-  // =====================================================
+  /* =======================================================
+     SAVE
+  ======================================================= */
 
   const handleSave = async () => {
     if (!editText.trim()) return;
 
-    await updateDoc(
-      doc(db, "rooms", roomId, "plans", planId, "schedules", item.id),
-      {
-        text: editText,
-      },
-    );
+    try {
+      await updateDoc(
+        doc(db, "rooms", roomId, "plans", planId, "schedules", item.id),
+        {
+          text: editText,
+        },
+      );
 
-    setEditing(false);
+      setEditing(false);
+    } catch (error) {
+      console.error("Lỗi lưu:", error);
+    }
   };
 
   return (
@@ -1194,15 +1538,11 @@ function PlanItem({
         className="
           absolute
           inset-0
-
           bg-red-100
-
           flex
           justify-end
           items-center
-
           pr-4
-
           rounded-2xl
         "
       >
@@ -1228,13 +1568,10 @@ function PlanItem({
         className={`
           bg-white
           rounded-2xl
-
           pl-1
           pr-4
           py-4
-
           shadow-sm
-
           transition-transform
           duration-200
           ease-out
@@ -1256,18 +1593,14 @@ function PlanItem({
             {...dragHandle.attributes}
             className="
               cursor-grab
-
               text-gray-400
-
               active:scale-95
-
               pr-2
               pl-1
               py-2
-
               mt-1
-
               self-center
+              shrink-0
             "
           >
             <GripVertical size={28} />
@@ -1322,19 +1655,13 @@ function PlanItem({
                 onChange={(e) => setEditText(e.target.value)}
                 className="
                   border
-
                   rounded-lg
-
                   px-3
                   py-2
-
                   w-full
-
                   resize-none
                   overflow-hidden
-
                   outline-none
-
                   focus:ring-2
                   focus:ring-pink-300
                 "
@@ -1359,12 +1686,10 @@ function PlanItem({
             onClick={editing ? handleSave : () => setEditing(true)}
             className="
               text-blue-400
-
               text-xs
-
               whitespace-nowrap
-
               mt-1
+              shrink-0
             "
           >
             {editing ? "Lưu" : "Sửa"}
