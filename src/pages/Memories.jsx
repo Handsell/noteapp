@@ -783,23 +783,57 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
       setOcrProgress(0);
       setOcrText("");
 
-      const result = await Tesseract.recognize(file, "eng", {
+      console.log("📷 Ảnh OCR:", {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      /* =====================================================
+       BƯỚC 1: XỬ LÝ ẢNH
+    ===================================================== */
+
+      setOcrProgress(10);
+
+      const processedImage = await preprocessImageForOCR(file);
+
+      console.log("✅ Đã xử lý ảnh OCR", processedImage.size);
+
+      /* =====================================================
+       BƯỚC 2: OCR TIẾNG VIỆT + TIẾNG ANH
+    ===================================================== */
+
+      setOcrProgress(20);
+
+      const result = await Tesseract.recognize(processedImage, "vie+eng", {
         logger: (message) => {
+          console.log("OCR:", message);
+
           if (message.status === "recognizing text") {
-            setOcrProgress(Math.round((message.progress || 0) * 100));
+            setOcrProgress(20 + Math.round((message.progress || 0) * 70));
           }
         },
       });
 
+      /* =====================================================
+       BƯỚC 3: LẤY TEXT
+    ===================================================== */
+
       const text = result?.data?.text || "";
+
+      console.log("========== OCR RESULT ==========");
+      console.log(text);
+      console.log("================================");
 
       setOcrText(text);
 
-      /* ============================================
-         PHÂN TÍCH OCR
-      ============================================ */
+      /* =====================================================
+       BƯỚC 4: PHÂN TÍCH HÓA ĐƠN
+    ===================================================== */
 
       const parsed = parseReceiptText(text);
+
+      console.log("📦 Parsed receipt:", parsed);
 
       if (parsed.title) {
         setTitle(parsed.title);
@@ -813,6 +847,10 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         setDate(parsed.date);
       }
 
+      /* =====================================================
+       LƯU TEXT OCR VÀO GHI CHÚ
+    ===================================================== */
+
       if (text.trim()) {
         setNote((previous) => {
           const ocrNote = `OCR hóa đơn:\n${text.trim()}`;
@@ -825,11 +863,21 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         });
       }
 
-      alert("Đã quét hóa đơn. M kiểm tra lại thông tin trước khi lưu nhé ❤️");
-    } catch (error) {
-      console.error("Lỗi OCR hóa đơn:", error);
+      setOcrProgress(100);
 
-      alert("Không thể đọc hóa đơn. Thử chụp ảnh rõ hơn nhé.");
+      if (text.trim()) {
+        alert(
+          "Đã quét hóa đơn ❤️\nM kiểm tra lại thông tin trước khi lưu nhé.",
+        );
+      } else {
+        alert(
+          "OCR không đọc được nội dung hóa đơn.\nThử ảnh rõ hơn hoặc chụp gần hơn nhé.",
+        );
+      }
+    } catch (error) {
+      console.error("❌ Lỗi OCR hóa đơn:", error);
+
+      alert(`Không thể đọc hóa đơn.\n\n${error?.message || error}`);
     } finally {
       setOcrLoading(false);
       setOcrProgress(0);
@@ -1696,7 +1744,9 @@ function parseReceiptText(text) {
   let amount = "";
 
   const priorityPatterns = [
-    /(?:tổng tiền|tong tien|thành tiền|thanh tien|total|grand total|amount|payment|phải trả|phai tra)[^\d]{0,30}([\d.,\s]+)/i,
+    /(?:tổng tiền|tong tien|thành tiền|thanh tien|total|grand total|amount|payment|phải trả|phai tra|phải thanh toán|phai thanh toan)[^\d]{0,40}([\d.,\s]+)/i,
+
+    /(?:tiền chuyển khoản|tien chuyen khoan)[^\d]{0,40}([\d.,\s]+)/i,
 
     /([\d]{1,3}(?:[.,\s][\d]{3})+)\s*(?:đ|₫|vnd)?$/i,
   ];
@@ -1802,6 +1852,31 @@ function parseReceiptText(text) {
     "thành tiền",
     "thanh tien",
   ];
+
+  const storeKeywords = [
+    "bách hóa xanh",
+    "bach hoa xanh",
+    "thegioididong",
+    "thế giới di động",
+    "điện máy xanh",
+    "dien may xanh",
+    "winmart",
+    "circle k",
+    "coopmart",
+    "co.opmart",
+    "lotte",
+    "aeon",
+  ];
+
+  const storeLine = lines.find((line) => {
+    const lower = line.toLowerCase();
+
+    return storeKeywords.some((keyword) => lower.includes(keyword));
+  });
+
+  if (storeLine) {
+    title = storeLine;
+  }
 
   for (const line of lines.slice(0, 8)) {
     const lower = line.toLowerCase();
