@@ -55,7 +55,7 @@ function App() {
         {/* ================= MEMORIES ================= */}
 
         <div className={tab === "memories" ? "block" : "hidden"}>
-          <Memories />
+          <Memories roomId={roomId} />
         </div>
       </div>
 

@@ -24,7 +24,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 
-import { GripVertical, ArrowLeft, Plus } from "lucide-react";
+import { GripVertical, ArrowLeft, Plus, MapPin, Map } from "lucide-react";
 
 /* =========================================================
    PLANS
@@ -86,15 +86,18 @@ function Plans({ roomId }) {
       return;
     }
 
+    if (endDate < startDate) {
+      alert("Ngày kết thúc không được trước ngày bắt đầu");
+      return;
+    }
+
     try {
       const plansRef = collection(db, "rooms", roomId, "plans");
 
       await addDoc(plansRef, {
         title,
-
         startDate,
         endDate,
-
         createdAt: serverTimestamp(),
         order: Date.now(),
       });
@@ -110,10 +113,6 @@ function Plans({ roomId }) {
 
   /* =======================================================
      XÓA PLAN
-     
-     Lưu ý:
-     Firestore không tự xóa schedules bên trong.
-     Hàm này sẽ xóa Plan.
   ======================================================= */
 
   const deletePlan = async (plan) => {
@@ -149,7 +148,6 @@ function Plans({ roomId }) {
 
     const newPlans = arrayMove(plans, oldIndex, newIndex);
 
-    // Cập nhật UI ngay
     setPlans(newPlans);
 
     try {
@@ -179,6 +177,10 @@ function Plans({ roomId }) {
     );
   }
 
+  /* =======================================================
+     SỬA PLAN
+  ======================================================= */
+
   if (editingPlan) {
     return (
       <EditPlan
@@ -189,6 +191,7 @@ function Plans({ roomId }) {
       />
     );
   }
+
   /* =======================================================
      UI
   ======================================================= */
@@ -204,9 +207,7 @@ function Plans({ roomId }) {
         pb-10
       "
     >
-      {/* =================================================
-          HEADER
-      ================================================= */}
+      {/* HEADER */}
 
       <div
         className="
@@ -238,8 +239,6 @@ function Plans({ roomId }) {
           </p>
         </div>
 
-        {/* NÚT TẠO PLAN */}
-
         <button
           onClick={() => setShowCreate(true)}
           className="
@@ -260,53 +259,45 @@ function Plans({ roomId }) {
         </button>
       </div>
 
-      {/* =================================================
-          FORM TẠO PLAN
-      ================================================= */}
+      {/* FORM TẠO PLAN */}
 
       {showCreate && (
         <div
           className="
-      bg-white
-      p-4
-      rounded-2xl
-      shadow
-      mb-4
-    "
+            bg-white
+            p-4
+            rounded-2xl
+            shadow
+            mb-4
+          "
         >
-          {/* TÊN PLAN */}
-
           <input
             autoFocus
             value={newPlan}
             onChange={(e) => setNewPlan(e.target.value)}
             placeholder="Nhập tên kế hoạch..."
             className="
-        border
-        border-gray-200
-        p-3
-        rounded-xl
-        w-full
-        outline-none
-        focus:ring-2
-        focus:ring-pink-300
-        mb-3
-      "
+              border
+              border-gray-200
+              p-3
+              rounded-xl
+              w-full
+              outline-none
+              focus:ring-2
+              focus:ring-pink-300
+              mb-3
+            "
           />
 
-          {/* THỜI GIAN */}
-
           <div className="grid grid-cols-2 gap-2 mb-3">
-            {/* NGÀY BẮT ĐẦU */}
-
             <div>
               <label
                 className="
-            block
-            text-xs
-            text-gray-400
-            mb-1
-          "
+                  block
+                  text-xs
+                  text-gray-400
+                  mb-1
+                "
               >
                 Từ ngày
               </label>
@@ -316,29 +307,27 @@ function Plans({ roomId }) {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="
-            border
-            border-gray-200
-            p-3
-            rounded-xl
-            w-full
-            outline-none
-            focus:ring-2
-            focus:ring-pink-300
-            text-sm
-          "
+                  border
+                  border-gray-200
+                  p-3
+                  rounded-xl
+                  w-full
+                  outline-none
+                  focus:ring-2
+                  focus:ring-pink-300
+                  text-sm
+                "
               />
             </div>
-
-            {/* NGÀY KẾT THÚC */}
 
             <div>
               <label
                 className="
-            block
-            text-xs
-            text-gray-400
-            mb-1
-          "
+                  block
+                  text-xs
+                  text-gray-400
+                  mb-1
+                "
               >
                 Đến ngày
               </label>
@@ -349,36 +338,34 @@ function Plans({ roomId }) {
                 min={startDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="
-            border
-            border-gray-200
-            p-3
-            rounded-xl
-            w-full
-            outline-none
-            focus:ring-2
-            focus:ring-pink-300
-            text-sm
-          "
+                  border
+                  border-gray-200
+                  p-3
+                  rounded-xl
+                  w-full
+                  outline-none
+                  focus:ring-2
+                  focus:ring-pink-300
+                  text-sm
+                "
               />
             </div>
           </div>
-
-          {/* BUTTON */}
 
           <div className="flex gap-2">
             <button
               onClick={createPlan}
               className="
-          bg-pink-500
-          text-white
-          px-4
-          py-3
-          rounded-xl
-          flex-1
-          font-semibold
-          active:scale-95
-          transition
-        "
+                bg-pink-500
+                text-white
+                px-4
+                py-3
+                rounded-xl
+                flex-1
+                font-semibold
+                active:scale-95
+                transition
+              "
             >
               Tạo kế hoạch
             </button>
@@ -391,33 +378,29 @@ function Plans({ roomId }) {
                 setEndDate("");
               }}
               className="
-          bg-gray-100
-          text-gray-500
-          px-5
-          rounded-xl
-          active:scale-95
-        "
+                bg-gray-100
+                text-gray-500
+                px-5
+                rounded-xl
+                active:scale-95
+              "
             >
               Huỷ
             </button>
           </div>
         </div>
       )}
-      {/* =================================================
-          LOADING
-      ================================================= */}
+
+      {/* LOADING */}
 
       {loading ? (
         <div className="space-y-3">
           <PlanSkeleton />
-
           <PlanSkeleton />
         </div>
       ) : (
         <>
-          {/* =================================================
-              EMPTY
-          ================================================= */}
+          {/* EMPTY */}
 
           {plans.length === 0 && !showCreate && (
             <div
@@ -446,9 +429,7 @@ function Plans({ roomId }) {
             </div>
           )}
 
-          {/* =================================================
-              LIST PLAN
-          ================================================= */}
+          {/* LIST PLAN */}
 
           <DndContext
             collisionDetection={closestCenter}
@@ -462,15 +443,9 @@ function Plans({ roomId }) {
                 <SortablePlan
                   key={plan.id}
                   plan={plan}
-                  onClick={() => {
-                    setSelectedPlan(plan);
-                  }}
-                  onDelete={() => {
-                    deletePlan(plan);
-                  }}
-                  onUpdate={() => {
-                    setEditingPlan(plan);
-                  }}
+                  onClick={() => setSelectedPlan(plan)}
+                  onDelete={() => deletePlan(plan)}
+                  onUpdate={() => setEditingPlan(plan)}
                 />
               ))}
             </SortableContext>
@@ -480,6 +455,11 @@ function Plans({ roomId }) {
     </div>
   );
 }
+
+/* =========================================================
+   EDIT PLAN
+========================================================= */
+
 function EditPlan({ roomId, plan, onBack, onSaved }) {
   const [title, setTitle] = useState(plan.title || "");
 
@@ -596,8 +576,6 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
           shadow
         "
       >
-        {/* TÊN */}
-
         <label
           className="
             block
@@ -626,8 +604,6 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
           "
         />
 
-        {/* NGÀY */}
-
         <div
           className="
             grid
@@ -635,8 +611,6 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
             gap-3
           "
         >
-          {/* START */}
-
           <div>
             <label
               className="
@@ -666,8 +640,6 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
               "
             />
           </div>
-
-          {/* END */}
 
           <div>
             <label
@@ -700,8 +672,6 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
             />
           </div>
         </div>
-
-        {/* BUTTON */}
 
         <div
           className="
@@ -748,6 +718,7 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
     </div>
   );
 }
+
 /* =========================================================
    PLAN SKELETON
 ========================================================= */
@@ -805,8 +776,9 @@ function PlanSkeleton() {
 }
 
 /* =========================================================
-   SORTABLE PLAN
+   FORMAT DATE
 ========================================================= */
+
 function formatDate(dateString) {
   if (!dateString) return "";
 
@@ -814,6 +786,89 @@ function formatDate(dateString) {
 
   return `${day}/${month}/${year}`;
 }
+
+/* =========================================================
+   VALIDATE 24H TIME
+========================================================= */
+
+function isValidTime(time) {
+  if (!time) return true;
+
+  const match = time.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+
+  return !!match;
+}
+
+/* =========================================================
+   FORMAT TIME INPUT
+========================================================= */
+
+function formatTimeInput(value) {
+  let numbers = value.replace(/\D/g, "");
+
+  numbers = numbers.slice(0, 4);
+
+  if (numbers.length >= 3) {
+    numbers = numbers.slice(0, 2) + ":" + numbers.slice(2);
+  }
+
+  return numbers;
+}
+
+/* =========================================================
+   GET LOCATION NAME
+   Hỗ trợ:
+   1. location string
+   2. location object
+========================================================= */
+
+function getLocationName(location) {
+  if (!location) return "";
+
+  if (typeof location === "object") {
+    return location.name || "";
+  }
+
+  return location;
+}
+
+/* =========================================================
+   GOOGLE MAP URL
+========================================================= */
+
+function createGoogleMapsUrl(location) {
+  const locationName = getLocationName(location);
+
+  if (!locationName.trim()) {
+    return "";
+  }
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    locationName.trim(),
+  )}`;
+}
+
+/* =========================================================
+   GET LOCATION OBJECT
+   Dùng để đảm bảo dữ liệu luôn có mapUrl
+========================================================= */
+
+function normalizeLocation(location) {
+  const locationName = getLocationName(location);
+
+  if (!locationName.trim()) {
+    return null;
+  }
+
+  return {
+    name: locationName.trim(),
+    mapUrl: createGoogleMapsUrl(locationName),
+  };
+}
+
+/* =========================================================
+   SORTABLE PLAN
+========================================================= */
 
 function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
   const [swiped, setSwiped] = useState(false);
@@ -844,7 +899,9 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
     transform: transform
       ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
       : undefined,
+
     transition,
+
     touchAction: "pan-y",
   };
 
@@ -860,7 +917,7 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
         rounded-2xl
       "
     >
-      {/* ================= NỀN XOÁ ================= */}
+      {/* NỀN XOÁ */}
 
       <div
         className="
@@ -891,7 +948,7 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
         </button>
       </div>
 
-      {/* ================= CARD ================= */}
+      {/* CARD */}
 
       <div
         {...handlers}
@@ -917,7 +974,7 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
             gap-3
           "
         >
-          {/* ================= DRAG ================= */}
+          {/* DRAG */}
 
           <div
             {...listeners}
@@ -935,7 +992,7 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
             <GripVertical size={28} />
           </div>
 
-          {/* ================= CONTENT ================= */}
+          {/* CONTENT */}
 
           <button
             onClick={() => {
@@ -952,8 +1009,6 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
               text-left
             "
           >
-            {/* TÊN */}
-
             <p
               className="
                 text-gray-700
@@ -963,8 +1018,6 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
             >
               {plan.title}
             </p>
-
-            {/* THỜI GIAN */}
 
             {plan.startDate && plan.endDate && (
               <p
@@ -988,8 +1041,6 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
               </p>
             )}
 
-            {/* SUB TEXT */}
-
             <p
               className="
                 text-xs
@@ -1001,7 +1052,7 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
             </p>
           </button>
 
-          {/* ================= SỬA ================= */}
+          {/* SỬA */}
 
           <button
             onClick={(e) => {
@@ -1038,6 +1089,10 @@ function PlanDetail({ roomId, plan, onBack }) {
   const [loading, setLoading] = useState(true);
 
   const [newSchedule, setNewSchedule] = useState("");
+
+  const [newScheduleTime, setNewScheduleTime] = useState("");
+
+  const [newScheduleLocation, setNewScheduleLocation] = useState("");
 
   const textareaRef = useRef(null);
 
@@ -1096,7 +1151,15 @@ function PlanDetail({ roomId, plan, onBack }) {
   ======================================================= */
 
   const addSchedule = async () => {
-    if (!newSchedule.trim()) return;
+    if (!newSchedule.trim()) {
+      return;
+    }
+
+    if (newScheduleTime && !isValidTime(newScheduleTime)) {
+      alert("Giờ không hợp lệ. Vui lòng nhập dạng 24h, ví dụ 08:30 hoặc 21:45");
+
+      return;
+    }
 
     try {
       const schedulesRef = collection(
@@ -1108,8 +1171,20 @@ function PlanDetail({ roomId, plan, onBack }) {
         "schedules",
       );
 
+      /* ===============================================
+         QUAN TRỌNG:
+         Luôn lưu location dưới dạng object
+         có name + mapUrl
+      =============================================== */
+
+      const locationData = normalizeLocation(newScheduleLocation);
+
       await addDoc(schedulesRef, {
         text: newSchedule.trim(),
+
+        time: newScheduleTime || "",
+
+        location: locationData,
 
         done: false,
 
@@ -1119,6 +1194,8 @@ function PlanDetail({ roomId, plan, onBack }) {
       });
 
       setNewSchedule("");
+      setNewScheduleTime("");
+      setNewScheduleLocation("");
     } catch (error) {
       console.error("Lỗi thêm lịch trình:", error);
     }
@@ -1209,9 +1286,7 @@ function PlanDetail({ roomId, plan, onBack }) {
         pb-10
       "
     >
-      {/* =================================================
-          HEADER
-      ================================================= */}
+      {/* HEADER */}
 
       <div
         className="
@@ -1264,9 +1339,7 @@ function PlanDetail({ roomId, plan, onBack }) {
         </div>
       </div>
 
-      {/* =================================================
-          INPUT
-      ================================================= */}
+      {/* INPUT THÊM LỊCH TRÌNH */}
 
       <div
         className="
@@ -1277,6 +1350,8 @@ function PlanDetail({ roomId, plan, onBack }) {
           mb-4
         "
       >
+        {/* NỘI DUNG */}
+
         <textarea
           ref={textareaRef}
           value={newSchedule}
@@ -1288,7 +1363,7 @@ function PlanDetail({ roomId, plan, onBack }) {
             p-3
             rounded-xl
             w-full
-            mb-2
+            mb-3
             resize-none
             overflow-hidden
             outline-none
@@ -1296,6 +1371,78 @@ function PlanDetail({ roomId, plan, onBack }) {
             focus:ring-pink-300
           "
         />
+
+        {/* THỜI GIAN */}
+
+        <div className="mb-3">
+          <label
+            className="
+              block
+              text-xs
+              text-gray-400
+              mb-1
+            "
+          >
+            Thời gian
+          </label>
+
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={5}
+            value={newScheduleTime}
+            onChange={(e) => {
+              setNewScheduleTime(formatTimeInput(e.target.value));
+            }}
+            placeholder="HH:mm"
+            className="
+              border
+              border-gray-200
+              p-3
+              rounded-xl
+              w-full
+              outline-none
+              focus:ring-2
+              focus:ring-pink-300
+              text-sm
+            "
+          />
+        </div>
+
+        {/* ĐỊA ĐIỂM */}
+
+        <div className="mb-3">
+          <label
+            className="
+              block
+              text-xs
+              text-gray-400
+              mb-1
+            "
+          >
+            Địa điểm
+          </label>
+
+          <input
+            type="text"
+            value={newScheduleLocation}
+            onChange={(e) => setNewScheduleLocation(e.target.value)}
+            placeholder="Ví dụ: Thôn 13, Đà Lạt..."
+            className="
+              border
+              border-gray-200
+              p-3
+              rounded-xl
+              w-full
+              outline-none
+              focus:ring-2
+              focus:ring-pink-300
+              text-sm
+            "
+          />
+        </div>
+
+        {/* BUTTON */}
 
         <button
           onClick={addSchedule}
@@ -1315,9 +1462,7 @@ function PlanDetail({ roomId, plan, onBack }) {
         </button>
       </div>
 
-      {/* =================================================
-          LIST
-      ================================================= */}
+      {/* LIST */}
 
       <div
         className="
@@ -1328,8 +1473,6 @@ function PlanDetail({ roomId, plan, onBack }) {
         "
       >
         <h2 className="font-bold mb-2">Lịch trình</h2>
-
-        {/* LOADING */}
 
         {loading ? (
           <div className="space-y-3">
@@ -1353,8 +1496,6 @@ function PlanDetail({ roomId, plan, onBack }) {
           </div>
         ) : (
           <>
-            {/* EMPTY */}
-
             {schedules.length === 0 && (
               <div
                 className="
@@ -1366,8 +1507,6 @@ function PlanDetail({ roomId, plan, onBack }) {
                 Chưa có lịch trình nào
               </div>
             )}
-
-            {/* LIST */}
 
             <DndContext
               collisionDetection={closestCenter}
@@ -1445,7 +1584,6 @@ function SortableSchedule({
 
 /* =========================================================
    PLAN ITEM
-   GIỮ GIAO DIỆN CŨ
 ========================================================= */
 
 function PlanItem({
@@ -1460,7 +1598,13 @@ function PlanItem({
 
   const [editing, setEditing] = useState(false);
 
-  const [editText, setEditText] = useState(item.text);
+  const [editText, setEditText] = useState(item.text || "");
+
+  const [editTime, setEditTime] = useState(item.time || "");
+
+  const [editLocation, setEditLocation] = useState(
+    getLocationName(item.location),
+  );
 
   const textareaRef = useRef(null);
 
@@ -1475,7 +1619,7 @@ function PlanItem({
       textareaRef.current.style.height =
         textareaRef.current.scrollHeight + "px";
     }
-  }, [editing]);
+  }, [editing, editText]);
 
   /* =======================================================
      SWIPE
@@ -1504,21 +1648,60 @@ function PlanItem({
   ======================================================= */
 
   const handleSave = async () => {
-    if (!editText.trim()) return;
+    if (!editText.trim()) {
+      return;
+    }
+
+    if (editTime && !isValidTime(editTime)) {
+      alert("Giờ không hợp lệ. Vui lòng nhập dạng 24h, ví dụ 08:30 hoặc 21:45");
+
+      return;
+    }
 
     try {
+      const locationData = normalizeLocation(editLocation);
+
       await updateDoc(
         doc(db, "rooms", roomId, "plans", planId, "schedules", item.id),
         {
-          text: editText,
+          text: editText.trim(),
+
+          time: editTime || "",
+
+          /* =========================================
+             LUÔN LƯU LOCATION ĐÚNG FORMAT
+          ========================================= */
+
+          location: locationData,
         },
       );
 
       setEditing(false);
     } catch (error) {
       console.error("Lỗi lưu:", error);
+
+      alert("Không thể lưu thay đổi");
     }
   };
+
+  /* =======================================================
+     LOCATION DATA FOR DISPLAY
+  ======================================================= */
+
+  const locationName = getLocationName(item.location);
+
+  /*
+   * Nếu dữ liệu cũ là string
+   * thì tự tạo map URL.
+   *
+   * Nếu dữ liệu mới là object
+   * nhưng thiếu mapUrl thì cũng tự tạo.
+   */
+
+  const mapUrl =
+    typeof item.location === "object"
+      ? item.location?.mapUrl || createGoogleMapsUrl(locationName)
+      : createGoogleMapsUrl(locationName);
 
   return (
     <div
@@ -1530,9 +1713,7 @@ function PlanItem({
         rounded-2xl
       "
     >
-      {/* =================================================
-          NỀN XOÁ
-      ================================================= */}
+      {/* NỀN XOÁ */}
 
       <div
         className="
@@ -1547,7 +1728,10 @@ function PlanItem({
         "
       >
         <button
-          onClick={() => deleteSchedule(item)}
+          onClick={() => {
+            deleteSchedule(item);
+            setSwiped(false);
+          }}
           className="
             text-red-500
             font-semibold
@@ -1559,9 +1743,7 @@ function PlanItem({
         </button>
       </div>
 
-      {/* =================================================
-          CARD
-      ================================================= */}
+      {/* CARD */}
 
       <div
         {...handlers}
@@ -1626,7 +1808,7 @@ function PlanItem({
             >
               <input
                 type="checkbox"
-                checked={item.done}
+                checked={!!item.done}
                 onChange={() => toggleSchedule(item)}
                 className="
                   w-5
@@ -1645,51 +1827,239 @@ function PlanItem({
               </p>
             </div>
 
-            {/* TEXT */}
+            {/* EDIT MODE */}
 
             {editing ? (
-              <textarea
-                ref={textareaRef}
-                autoFocus
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                className="
-                  border
-                  rounded-lg
-                  px-3
-                  py-2
-                  w-full
-                  resize-none
-                  overflow-hidden
-                  outline-none
-                  focus:ring-2
-                  focus:ring-pink-300
-                "
-              />
-            ) : (
-              <p
-                className={`
-                  text-gray-700
-                  break-words
+              <>
+                {/* TEXT */}
 
-                  ${item.done ? "line-through text-gray-400" : ""}
-                `}
-              >
-                {item.text}
-              </p>
+                <textarea
+                  ref={textareaRef}
+                  autoFocus
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  className="
+                    border
+                    border-gray-200
+                    rounded-lg
+                    px-3
+                    py-2
+                    w-full
+                    resize-none
+                    overflow-hidden
+                    outline-none
+                    focus:ring-2
+                    focus:ring-pink-300
+                    mb-2
+                  "
+                />
+
+                {/* TIME */}
+
+                <div className="mb-2">
+                  <label
+                    className="
+                      block
+                      text-xs
+                      text-gray-400
+                      mb-1
+                    "
+                  >
+                    Thời gian
+                  </label>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={5}
+                    value={editTime}
+                    onChange={(e) => {
+                      setEditTime(formatTimeInput(e.target.value));
+                    }}
+                    placeholder="HH:mm"
+                    className="
+                      border
+                      border-gray-200
+                      rounded-lg
+                      px-3
+                      py-2
+                      w-full
+                      text-sm
+                      outline-none
+                      focus:ring-2
+                      focus:ring-pink-300
+                      mb-2
+                    "
+                  />
+                </div>
+
+                {/* LOCATION */}
+
+                <div className="relative">
+                  <MapPin
+                    size={16}
+                    className="
+                      absolute
+                      left-3
+                      top-1/2
+                      -translate-y-1/2
+                      text-pink-400
+                    "
+                  />
+
+                  <input
+                    type="text"
+                    value={editLocation}
+                    onChange={(e) => setEditLocation(e.target.value)}
+                    placeholder="Địa điểm..."
+                    className="
+                      border
+                      border-gray-200
+                      rounded-lg
+                      px-3
+                      py-2
+                      pl-9
+                      w-full
+                      text-sm
+                      outline-none
+                      focus:ring-2
+                      focus:ring-pink-300
+                    "
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                {/* TEXT */}
+
+                <p
+                  className={`
+                    text-gray-700
+                    break-words
+
+                    ${item.done ? "line-through text-gray-400" : ""}
+                  `}
+                >
+                  {item.text}
+                </p>
+
+                {/* THỜI GIAN */}
+
+                {item.time && (
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-2
+                      mt-2
+                    "
+                  >
+                    <span className="text-sm">🕐</span>
+
+                    <span
+                      className="
+                        text-sm
+                        text-pink-400
+                      "
+                    >
+                      {item.time}
+                    </span>
+                  </div>
+                )}
+
+                {/* ĐỊA ĐIỂM */}
+
+                {locationName && (
+                  <div
+                    className="
+                      mt-2
+                      flex
+                      items-start
+                      gap-2
+                    "
+                  >
+                    <MapPin
+                      size={17}
+                      className="
+                        text-blue-400
+                        shrink-0
+                        mt-0.5
+                      "
+                    />
+
+                    <div className="min-w-0">
+                      <p
+                        className="
+                          text-sm
+                          text-blue-400
+                          break-words
+                        "
+                      >
+                        {locationName}
+                      </p>
+
+                      {/* GOOGLE MAP */}
+
+                      {mapUrl && (
+                        <a
+                          href={mapUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="
+                            inline-flex
+                            items-center
+                            gap-1
+                            mt-1
+                            text-xs
+                            text-blue-400
+                            font-medium
+                          "
+                        >
+                          <Map size={14} />
+                          Xem trên bản đồ
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
           {/* ACTION */}
 
           <button
-            onClick={editing ? handleSave : () => setEditing(true)}
+            onClick={
+              editing
+                ? handleSave
+                : () => {
+                    /*
+                     * Load dữ liệu hiện tại
+                     * vào form sửa
+                     */
+
+                    setEditText(item.text || "");
+
+                    setEditTime(item.time || "");
+
+                    setEditLocation(getLocationName(item.location));
+
+                    setEditing(true);
+
+                    setSwiped(false);
+                  }
+            }
             className="
               text-blue-400
               text-xs
               whitespace-nowrap
               mt-1
               shrink-0
+              px-2
+              py-1
+              active:scale-90
+              transition
             "
           >
             {editing ? "Lưu" : "Sửa"}
