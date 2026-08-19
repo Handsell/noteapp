@@ -51,8 +51,6 @@ function formatDate(dateString) {
 
 /* =========================================================
    FORMAT DATE LONG
-   Ví dụ:
-   2026-08-20 -> Thứ năm, 20/08/2026
 ========================================================= */
 
 function formatDateLong(dateString) {
@@ -168,7 +166,6 @@ function normalizeLocation(location) {
 
 /* =========================================================
    NORMALIZE DATE
-   Hỗ trợ dữ liệu cũ nếu có.
 ========================================================= */
 
 function normalizeScheduleDate(item) {
@@ -178,28 +175,11 @@ function normalizeScheduleDate(item) {
     return item.date;
   }
 
-  /*
-   * Một số dữ liệu cũ có thể chưa có date.
-   * Cho xuống cuối danh sách.
-   */
   return "";
 }
 
 /* =========================================================
    SORT SCHEDULES
-=========================================================
-
-   Quy tắc:
-
-   1. Chưa hoàn thành trước
-   2. Đã hoàn thành xuống cuối
-   3. Trong nhóm chưa hoàn thành:
-      - ngày gần nhất trước
-      - cùng ngày thì giờ gần nhất trước
-   4. Trong nhóm đã hoàn thành:
-      - ngày gần nhất trước
-      - cùng ngày thì giờ gần nhất trước
-
 ========================================================= */
 
 function sortSchedules(items) {
@@ -207,7 +187,6 @@ function sortSchedules(items) {
     const aDone = !!a.done;
     const bDone = !!b.done;
 
-    /* Chưa xong luôn nằm trên */
     if (aDone !== bDone) {
       return aDone ? 1 : -1;
     }
@@ -215,22 +194,13 @@ function sortSchedules(items) {
     const aDate = normalizeScheduleDate(a);
     const bDate = normalizeScheduleDate(b);
 
-    /*
-     * Dữ liệu không có ngày đưa xuống cuối
-     */
     if (!aDate && bDate) return 1;
     if (aDate && !bDate) return -1;
 
-    /*
-     * So ngày
-     */
     if (aDate && bDate && aDate !== bDate) {
       return aDate.localeCompare(bDate);
     }
 
-    /*
-     * So giờ
-     */
     const aTime = timeToMinutes(a.time);
     const bTime = timeToMinutes(b.time);
 
@@ -238,9 +208,6 @@ function sortSchedules(items) {
       return aTime - bTime;
     }
 
-    /*
-     * Cuối cùng dùng createdAt/order/id
-     */
     const aOrder = Number(a.order || 0);
     const bOrder = Number(b.order || 0);
 
@@ -274,6 +241,30 @@ function groupSchedulesByDate(items) {
 
   return groups;
 }
+
+/* =========================================================
+   DATE INPUT CLASS
+   FIX MOBILE OVERFLOW
+========================================================= */
+
+const dateInputClass = `
+  block
+  w-full
+  min-w-0
+  max-w-full
+  box-border
+  appearance-none
+  border
+  border-gray-200
+  px-2
+  py-3
+  rounded-xl
+  outline-none
+  focus:ring-2
+  focus:ring-pink-300
+  text-[13px]
+  overflow-hidden
+`;
 
 /* =========================================================
    PLANS
@@ -460,10 +451,12 @@ function Plans({ roomId }) {
       className="
         w-full
         max-w-[700px]
+        min-w-0
         mx-auto
         px-4
         pt-4
         pb-10
+        box-border
       "
     >
       {/* HEADER */}
@@ -473,10 +466,12 @@ function Plans({ roomId }) {
           flex
           items-center
           justify-between
+          gap-3
           mb-4
+          min-w-0
         "
       >
-        <div>
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-gray-700">Dự định</h1>
 
           <p className="text-sm text-gray-400 mt-1">
@@ -498,6 +493,7 @@ function Plans({ roomId }) {
             shadow-md
             active:scale-90
             transition
+            shrink-0
           "
         >
           <Plus size={23} />
@@ -514,6 +510,10 @@ function Plans({ roomId }) {
             rounded-2xl
             shadow
             mb-4
+            w-full
+            min-w-0
+            box-border
+            overflow-hidden
           "
         >
           <input
@@ -522,11 +522,15 @@ function Plans({ roomId }) {
             onChange={(e) => setNewPlan(e.target.value)}
             placeholder="Nhập tên kế hoạch..."
             className="
+              block
               border
               border-gray-200
               p-3
               rounded-xl
               w-full
+              min-w-0
+              max-w-full
+              box-border
               outline-none
               focus:ring-2
               focus:ring-pink-300
@@ -534,8 +538,21 @@ function Plans({ roomId }) {
             "
           />
 
-          <div className="grid grid-cols-2 gap-2 mb-3 w-full min-w-0">
-            <div>
+          {/* DATE RANGE */}
+
+          <div
+            className="
+              grid
+              grid-cols-2
+              gap-2
+              mb-3
+              w-full
+              min-w-0
+            "
+          >
+            {/* START DATE */}
+
+            <div className="min-w-0 w-full overflow-hidden">
               <label className="block text-xs text-gray-400 mb-1">
                 Từ ngày
               </label>
@@ -544,25 +561,13 @@ function Plans({ roomId }) {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="
-    border
-    border-gray-200
-    px-2
-    py-3
-    rounded-xl
-    w-full
-    min-w-0
-    max-w-full
-    outline-none
-    focus:ring-2
-    focus:ring-pink-300
-    text-sm
-    box-border
-  "
+                className={dateInputClass}
               />
             </div>
 
-            <div>
+            {/* END DATE */}
+
+            <div className="min-w-0 w-full overflow-hidden">
               <label className="block text-xs text-gray-400 mb-1">
                 Đến ngày
               </label>
@@ -572,26 +577,14 @@ function Plans({ roomId }) {
                 min={startDate}
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="
-    border
-    border-gray-200
-    px-2
-    py-3
-    rounded-xl
-    w-full
-    min-w-0
-    max-w-full
-    outline-none
-    focus:ring-2
-    focus:ring-pink-300
-    text-sm
-    box-border
-  "
+                className={dateInputClass}
               />
             </div>
           </div>
 
-          <div className="flex gap-2">
+          {/* BUTTON */}
+
+          <div className="flex gap-2 min-w-0">
             <button
               onClick={createPlan}
               className="
@@ -601,6 +594,7 @@ function Plans({ roomId }) {
                 py-3
                 rounded-xl
                 flex-1
+                min-w-0
                 font-semibold
                 active:scale-95
                 transition
@@ -621,6 +615,7 @@ function Plans({ roomId }) {
                 text-gray-500
                 px-5
                 rounded-xl
+                shrink-0
                 active:scale-95
               "
             >
@@ -745,10 +740,12 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
       className="
         w-full
         max-w-[700px]
+        min-w-0
         mx-auto
         px-4
         pt-4
         pb-10
+        box-border
       "
     >
       {/* HEADER */}
@@ -759,6 +756,7 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
           items-center
           gap-3
           mb-5
+          min-w-0
         "
       >
         <button
@@ -775,12 +773,13 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
             text-gray-500
             active:scale-90
             transition
+            shrink-0
           "
         >
           <ArrowLeft size={20} />
         </button>
 
-        <div>
+        <div className="min-w-0">
           <h1 className="text-xl font-bold text-gray-700">Sửa kế hoạch</h1>
 
           <p className="text-sm text-gray-400">Chỉnh sửa thông tin kế hoạch</p>
@@ -795,6 +794,10 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
           p-4
           rounded-2xl
           shadow
+          w-full
+          min-w-0
+          box-border
+          overflow-hidden
         "
       >
         <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -805,11 +808,15 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="
+            block
             border
             border-gray-200
             p-3
             rounded-xl
             w-full
+            min-w-0
+            max-w-full
+            box-border
             outline-none
             focus:ring-2
             focus:ring-pink-300
@@ -817,32 +824,33 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
           "
         />
 
-        <div className="grid grid-cols-2 gap-2 w-full min-w-0">
-          <div className="min-w-0">
+        {/* DATE RANGE */}
+
+        <div
+          className="
+            grid
+            grid-cols-2
+            gap-2
+            w-full
+            min-w-0
+          "
+        >
+          {/* START DATE */}
+
+          <div className="min-w-0 w-full overflow-hidden">
             <label className="block text-xs text-gray-400 mb-1">Từ ngày</label>
 
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="
-      border
-      border-gray-200
-      p-3
-      rounded-xl
-      w-full
-      min-w-0
-      max-w-full
-      outline-none
-      focus:ring-2
-      focus:ring-pink-300
-      text-sm
-      box-border
-    "
+              className={dateInputClass}
             />
           </div>
 
-          <div className="min-w-0">
+          {/* END DATE */}
+
+          <div className="min-w-0 w-full overflow-hidden">
             <label className="block text-xs text-gray-400 mb-1">Đến ngày</label>
 
             <input
@@ -850,25 +858,14 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
               min={startDate}
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="
-      border
-      border-gray-200
-      p-3
-      rounded-xl
-      w-full
-      min-w-0
-      max-w-full
-      outline-none
-      focus:ring-2
-      focus:ring-pink-300
-      text-sm
-      box-border
-    "
+              className={dateInputClass}
             />
           </div>
         </div>
 
-        <div className="flex gap-2 mt-5">
+        {/* BUTTON */}
+
+        <div className="flex gap-2 mt-5 min-w-0">
           <button
             onClick={handleSave}
             disabled={saving}
@@ -879,6 +876,7 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
               py-3
               rounded-xl
               flex-1
+              min-w-0
               font-semibold
               active:scale-95
               transition
@@ -896,6 +894,7 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
               text-gray-500
               px-5
               rounded-xl
+              shrink-0
               active:scale-95
               disabled:opacity-50
             "
@@ -943,18 +942,10 @@ function PlanSkeleton() {
 function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
   const [swiped, setSwiped] = useState(false);
 
-  /* =======================================================
-     DND KIT
-  ======================================================= */
-
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
       id: plan.id,
     });
-
-  /* =======================================================
-     SWIPE
-  ======================================================= */
 
   const handlers = useSwipeable({
     onSwipedLeft: (e) => {
@@ -970,22 +961,9 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
     },
 
     delta: 20,
-
-    /*
-     * Không chặn scroll / drag dọc.
-     * Nếu để true sẽ dễ xung đột với dnd-kit.
-     */
     preventScrollOnSwipe: false,
-
-    /*
-     * Chỉ nhận swipe khi gesture đủ rõ theo chiều ngang.
-     */
     trackMouse: true,
   });
-
-  /* =======================================================
-     STYLE
-  ======================================================= */
 
   const style = {
     transform: transform
@@ -994,10 +972,6 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
 
     transition,
 
-    /*
-     * Cho phép scroll bình thường trên card.
-     * Riêng drag handle bên dưới sẽ có touch-none.
-     */
     touchAction: "pan-y",
   };
 
@@ -1011,11 +985,10 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
         shadow-md
         mb-3
         rounded-2xl
+        min-w-0
       "
     >
-      {/* ===================================================
-          NỀN XOÁ
-      =================================================== */}
+      {/* NỀN XOÁ */}
 
       <div
         className="
@@ -1048,9 +1021,7 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
         </button>
       </div>
 
-      {/* ===================================================
-          CARD
-      =================================================== */}
+      {/* CARD */}
 
       <div
         className={`
@@ -1064,16 +1035,13 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
           transition-transform
           duration-200
           ease-out
+          min-w-0
 
           ${swiped ? "-translate-x-24" : "translate-x-0"}
         `}
       >
-        <div className="flex items-center gap-3">
-          {/* =================================================
-              DRAG HANDLE
-
-              CHỈ VÙNG NÀY DÙNG CHO DND-KIT
-          ================================================= */}
+        <div className="flex items-center gap-3 min-w-0">
+          {/* DRAG HANDLE */}
 
           <div
             {...listeners}
@@ -1097,11 +1065,7 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
             <GripVertical size={28} />
           </div>
 
-          {/* =================================================
-              CONTENT
-
-              SWIPE CHỈ HOẠT ĐỘNG Ở KHU VỰC NÀY
-          ================================================= */}
+          {/* CONTENT */}
 
           <button
             {...handlers}
@@ -1120,8 +1084,6 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
               select-none
             "
           >
-            {/* TÊN PLAN */}
-
             <p
               className="
                 text-gray-700
@@ -1131,8 +1093,6 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
             >
               {plan.title}
             </p>
-
-            {/* NGÀY */}
 
             {plan.startDate && plan.endDate && (
               <p
@@ -1148,15 +1108,13 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
               >
                 <span>📅</span>
 
-                <span>
+                <span className="break-words">
                   {formatDate(plan.startDate)}
                   {" → "}
                   {formatDate(plan.endDate)}
                 </span>
               </p>
             )}
-
-            {/* DESCRIPTION */}
 
             <p
               className="
@@ -1169,17 +1127,12 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
             </p>
           </button>
 
-          {/* =================================================
-              SỬA
-          ================================================= */}
+          {/* SỬA */}
 
           <button
             onClick={(e) => {
               e.stopPropagation();
 
-              /*
-               * Nếu đang mở swipe thì đóng trước.
-               */
               if (swiped) {
                 setSwiped(false);
                 return;
@@ -1213,7 +1166,6 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
 
 function PlanDetail({ roomId, plan, onBack }) {
   const [schedules, setSchedules] = useState([]);
-
   const [loading, setLoading] = useState(true);
 
   const [newSchedule, setNewSchedule] = useState("");
@@ -1247,11 +1199,7 @@ function PlanDetail({ roomId, plan, onBack }) {
           ...item.data(),
         }));
 
-        /*
-         * Tự động sort bằng ngày + giờ + done
-         */
         setSchedules(sortSchedules(data));
-
         setLoading(false);
       },
       (error) => {
@@ -1297,10 +1245,6 @@ function PlanDetail({ roomId, plan, onBack }) {
 
       return;
     }
-
-    /*
-     * Kiểm tra ngày lịch trình nằm trong khoảng của plan
-     */
 
     if (plan.startDate && newScheduleDate < plan.startDate) {
       alert(`Ngày lịch trình không được trước ${formatDate(plan.startDate)}`);
@@ -1377,11 +1321,6 @@ function PlanDetail({ roomId, plan, onBack }) {
     try {
       const newDone = !item.done;
 
-      /*
-       * Cập nhật local trước để UI phản hồi ngay.
-       * onSnapshot sau đó sẽ đồng bộ lại Firebase.
-       */
-
       setSchedules((current) =>
         sortSchedules(
           current.map((schedule) =>
@@ -1425,10 +1364,12 @@ function PlanDetail({ roomId, plan, onBack }) {
       className="
         w-full
         max-w-[700px]
+        min-w-0
         mx-auto
         px-4
         pt-4
         pb-10
+        box-border
       "
     >
       {/* HEADER */}
@@ -1439,6 +1380,7 @@ function PlanDetail({ roomId, plan, onBack }) {
           items-center
           gap-3
           mb-4
+          min-w-0
         "
       >
         <button
@@ -1479,6 +1421,7 @@ function PlanDetail({ roomId, plan, onBack }) {
                 text-xs
                 text-pink-400
                 mt-1
+                break-words
               "
             >
               📅 {formatDate(plan.startDate)}
@@ -1500,6 +1443,10 @@ function PlanDetail({ roomId, plan, onBack }) {
           rounded-2xl
           shadow
           mb-4
+          w-full
+          min-w-0
+          box-border
+          overflow-hidden
         "
       >
         {/* NỘI DUNG */}
@@ -1510,11 +1457,15 @@ function PlanDetail({ roomId, plan, onBack }) {
           onChange={(e) => setNewSchedule(e.target.value)}
           placeholder="Nhập lịch trình..."
           className="
+            block
             border
             border-gray-200
             p-3
             rounded-xl
             w-full
+            min-w-0
+            max-w-full
+            box-border
             mb-3
             resize-none
             overflow-hidden
@@ -1526,7 +1477,7 @@ function PlanDetail({ roomId, plan, onBack }) {
 
         {/* NGÀY */}
 
-        <div className="mb-3">
+        <div className="mb-3 min-w-0 w-full">
           <label
             className="
               block
@@ -1538,7 +1489,7 @@ function PlanDetail({ roomId, plan, onBack }) {
             Ngày
           </label>
 
-          <div className="relative">
+          <div className="relative min-w-0 w-full overflow-hidden">
             <CalendarDays
               size={17}
               className="
@@ -1548,6 +1499,7 @@ function PlanDetail({ roomId, plan, onBack }) {
                 -translate-y-1/2
                 text-pink-400
                 pointer-events-none
+                z-10
               "
             />
 
@@ -1558,28 +1510,31 @@ function PlanDetail({ roomId, plan, onBack }) {
               max={plan.endDate || undefined}
               onChange={(e) => setNewScheduleDate(e.target.value)}
               className="
-              border
-              border-gray-200
-              px-2
-              py-3
-              pl-10
-              rounded-xl
-              w-full
-              min-w-0
-              max-w-full
-              outline-none
-              focus:ring-2
-              focus:ring-pink-300
-              text-sm
-              box-border
-             "
+                block
+                w-full
+                min-w-0
+                max-w-full
+                box-border
+                appearance-none
+                border
+                border-gray-200
+                px-2
+                py-3
+                pl-10
+                rounded-xl
+                outline-none
+                focus:ring-2
+                focus:ring-pink-300
+                text-[13px]
+                overflow-hidden
+              "
             />
           </div>
         </div>
 
         {/* THỜI GIAN */}
 
-        <div className="mb-3">
+        <div className="mb-3 min-w-0 w-full">
           <label
             className="
               block
@@ -1601,11 +1556,15 @@ function PlanDetail({ roomId, plan, onBack }) {
             }}
             placeholder="HH:mm"
             className="
+              block
               border
               border-gray-200
               p-3
               rounded-xl
               w-full
+              min-w-0
+              max-w-full
+              box-border
               outline-none
               focus:ring-2
               focus:ring-pink-300
@@ -1616,7 +1575,7 @@ function PlanDetail({ roomId, plan, onBack }) {
 
         {/* ĐỊA ĐIỂM */}
 
-        <div className="mb-3">
+        <div className="mb-3 min-w-0 w-full">
           <label
             className="
               block
@@ -1634,11 +1593,15 @@ function PlanDetail({ roomId, plan, onBack }) {
             onChange={(e) => setNewScheduleLocation(e.target.value)}
             placeholder="Ví dụ: Thôn 13, Đà Lạt..."
             className="
+              block
               border
               border-gray-200
               p-3
               rounded-xl
               w-full
+              min-w-0
+              max-w-full
+              box-border
               outline-none
               focus:ring-2
               focus:ring-pink-300
@@ -1675,6 +1638,10 @@ function PlanDetail({ roomId, plan, onBack }) {
           p-4
           rounded-2xl
           shadow
+          w-full
+          min-w-0
+          box-border
+          overflow-hidden
         "
       >
         <div
@@ -1682,13 +1649,15 @@ function PlanDetail({ roomId, plan, onBack }) {
             flex
             items-center
             justify-between
+            gap-2
             mb-3
+            min-w-0
           "
         >
           <h2 className="font-bold">Lịch trình</h2>
 
           {schedules.length > 0 && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 shrink-0">
               {schedules.filter((item) => !item.done).length} chưa xong
             </span>
           )}
@@ -1729,7 +1698,10 @@ function PlanDetail({ roomId, plan, onBack }) {
             )}
 
             {scheduleGroups.map((group) => (
-              <div key={group.date || "no-date"} className="mb-5 last:mb-0">
+              <div
+                key={group.date || "no-date"}
+                className="mb-5 last:mb-0 min-w-0"
+              >
                 {/* DATE HEADER */}
 
                 <div
@@ -1739,15 +1711,17 @@ function PlanDetail({ roomId, plan, onBack }) {
                     gap-2
                     mb-2
                     px-1
+                    min-w-0
                   "
                 >
-                  <CalendarDays size={16} className="text-pink-400" />
+                  <CalendarDays size={16} className="text-pink-400 shrink-0" />
 
                   <p
                     className="
                       text-sm
                       font-semibold
                       text-gray-600
+                      break-words
                     "
                   >
                     {group.date ? formatDateLong(group.date) : "Chưa có ngày"}
@@ -1756,7 +1730,7 @@ function PlanDetail({ roomId, plan, onBack }) {
 
                 {/* SCHEDULES */}
 
-                <div>
+                <div className="min-w-0">
                   {group.items.map((item) => (
                     <PlanItem
                       key={item.id}
@@ -1812,19 +1786,6 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
   }, [editing, editText]);
 
   /* =======================================================
-     LOAD CURRENT DATA WHEN ITEM CHANGES
-  ======================================================= */
-
-  // useEffect(() => {
-  //   if (!editing) {
-  //     setEditText(item.text || "");
-  //     setEditDate(normalizeScheduleDate(item));
-  //     setEditTime(item.time || "");
-  //     setEditLocation(getLocationName(item.location));
-  //   }
-  // }, [item.text, item.time, item.date, item.location, editing]);
-
-  /* =======================================================
      SWIPE
   ======================================================= */
 
@@ -1843,11 +1804,11 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
 
     delta: 20,
 
-    // Không khóa scroll dọc
     preventScrollOnSwipe: false,
 
     trackMouse: true,
   });
+
   /* =======================================================
      SAVE
   ======================================================= */
@@ -1919,6 +1880,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
         shadow-md
         mb-3
         rounded-2xl
+        min-w-0
 
         ${isDone ? "opacity-55" : ""}
       `}
@@ -1961,24 +1923,27 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
           touchAction: "pan-y",
         }}
         className={`
-    bg-white
-    rounded-2xl
-    pl-1
-    pr-4
-    py-4
-    shadow-sm
-    transition-transform
-    duration-200
-    ease-out
+          bg-white
+          rounded-2xl
+          pl-1
+          pr-4
+          py-4
+          shadow-sm
+          transition-transform
+          duration-200
+          ease-out
+          min-w-0
+          overflow-hidden
 
-    ${swiped ? "-translate-x-24" : "translate-x-0"}
-  `}
+          ${swiped ? "-translate-x-24" : "translate-x-0"}
+        `}
       >
         <div
           className="
             flex
             items-start
             gap-3
+            min-w-0
           "
         >
           {/* LEFT */}
@@ -2013,6 +1978,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
             className="
               flex-1
               min-w-0
+              overflow-hidden
             "
           >
             {/* STATUS */}
@@ -2048,12 +2014,16 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
                   className="
+                    block
                     border
                     border-gray-200
                     rounded-lg
                     px-3
                     py-2
                     w-full
+                    min-w-0
+                    max-w-full
+                    box-border
                     resize-none
                     overflow-hidden
                     outline-none
@@ -2065,7 +2035,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
 
                 {/* DATE */}
 
-                <div className="mb-2">
+                <div className="mb-2 min-w-0 w-full">
                   <label
                     className="
                       block
@@ -2081,24 +2051,30 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                     type="date"
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
-                    className="
+                    className={`
+                      block
+                      w-full
+                      min-w-0
+                      max-w-full
+                      box-border
+                      appearance-none
                       border
                       border-gray-200
                       rounded-lg
-                      px-3
+                      px-2
                       py-2
-                      w-full
-                      text-sm
+                      text-[13px]
                       outline-none
                       focus:ring-2
                       focus:ring-pink-300
-                    "
+                      overflow-hidden
+                    `}
                   />
                 </div>
 
                 {/* TIME */}
 
-                <div className="mb-2">
+                <div className="mb-2 min-w-0 w-full">
                   <label
                     className="
                       block
@@ -2120,12 +2096,16 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                     }}
                     placeholder="HH:mm"
                     className="
+                      block
                       border
                       border-gray-200
                       rounded-lg
                       px-3
                       py-2
                       w-full
+                      min-w-0
+                      max-w-full
+                      box-border
                       text-sm
                       outline-none
                       focus:ring-2
@@ -2136,7 +2116,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
 
                 {/* LOCATION */}
 
-                <div className="relative">
+                <div className="relative min-w-0 w-full">
                   <MapPin
                     size={16}
                     className="
@@ -2145,6 +2125,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                       top-1/2
                       -translate-y-1/2
                       text-pink-400
+                      pointer-events-none
                     "
                   />
 
@@ -2154,6 +2135,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                     onChange={(e) => setEditLocation(e.target.value)}
                     placeholder="Địa điểm..."
                     className="
+                      block
                       border
                       border-gray-200
                       rounded-lg
@@ -2161,6 +2143,9 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                       py-2
                       pl-9
                       w-full
+                      min-w-0
+                      max-w-full
+                      box-border
                       text-sm
                       outline-none
                       focus:ring-2
@@ -2193,14 +2178,19 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                       items-center
                       gap-2
                       mt-2
+                      min-w-0
                     "
                   >
-                    <CalendarDays size={15} className="text-pink-400" />
+                    <CalendarDays
+                      size={15}
+                      className="text-pink-400 shrink-0"
+                    />
 
                     <span
                       className="
                         text-sm
                         text-pink-400
+                        break-words
                       "
                     >
                       {formatDate(normalizeScheduleDate(item))}
@@ -2217,14 +2207,16 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                       items-center
                       gap-2
                       mt-1
+                      min-w-0
                     "
                   >
-                    <span className="text-sm">🕐</span>
+                    <span className="text-sm shrink-0">🕐</span>
 
                     <span
                       className="
                         text-sm
                         text-pink-400
+                        break-words
                       "
                     >
                       {item.time}
@@ -2241,6 +2233,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                       flex
                       items-start
                       gap-2
+                      min-w-0
                     "
                   >
                     <MapPin
@@ -2252,7 +2245,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                       "
                     />
 
-                    <div className="min-w-0">
+                    <div className="min-w-0 overflow-hidden">
                       <p
                         className="
                           text-sm
@@ -2277,6 +2270,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                             text-xs
                             text-blue-400
                             font-medium
+                            max-w-full
                           "
                         >
                           <Map size={14} />
@@ -2297,10 +2291,6 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
               editing
                 ? handleSave
                 : () => {
-                    /*
-                     * Load dữ liệu hiện tại
-                     */
-
                     setEditText(item.text || "");
 
                     setEditDate(normalizeScheduleDate(item));
