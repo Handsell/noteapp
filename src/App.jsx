@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 import Plans from "./pages/Plans";
 import Memories from "./pages/Memories";
 
-import { FaHome, FaList, FaHeart } from "react-icons/fa";
+import { FaHome, FaList, FaHeart, FaMoneyBill } from "react-icons/fa";
 
 function App() {
   // =====================================================
@@ -151,9 +151,9 @@ function App() {
             ${tab === "memories" ? "text-pink-500" : "text-gray-400"}
           `}
         >
-          <FaHeart size={18} />
+          <FaMoneyBill size={18} />
 
-          <span>Memories</span>
+          <span>TripExpenses</span>
         </button>
       </div>
     </div>
