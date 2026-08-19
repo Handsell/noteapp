@@ -1825,9 +1825,11 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
 
     delta: 20,
 
-    preventScrollOnSwipe: true,
-  });
+    // Không khóa scroll dọc
+    preventScrollOnSwipe: false,
 
+    trackMouse: true,
+  });
   /* =======================================================
      SAVE
   ======================================================= */
@@ -1937,19 +1939,22 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
 
       <div
         {...handlers}
+        style={{
+          touchAction: "pan-y",
+        }}
         className={`
-          bg-white
-          rounded-2xl
-          pl-1
-          pr-4
-          py-4
-          shadow-sm
-          transition-transform
-          duration-200
-          ease-out
+    bg-white
+    rounded-2xl
+    pl-1
+    pr-4
+    py-4
+    shadow-sm
+    transition-transform
+    duration-200
+    ease-out
 
-          ${swiped ? "-translate-x-24" : "translate-x-0"}
-        `}
+    ${swiped ? "-translate-x-24" : "translate-x-0"}
+  `}
       >
         <div
           className="
