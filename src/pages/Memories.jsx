@@ -1443,26 +1443,36 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
       <label
         className="
-          block
-          text-xs
-          text-gray-400
-          mb-1
-        "
+    block
+    text-xs
+    text-gray-400
+    mb-1
+  "
       >
         Ngày
       </label>
 
-      <div className="relative mb-3">
+      <div
+        className="
+    relative
+    mb-3
+    w-full
+    min-w-0
+  "
+      >
+        {/* ICON */}
+
         <CalendarDays
           size={17}
           className="
-            absolute
-            left-3
-            top-1/2
-            -translate-y-1/2
-            text-gray-400
-            pointer-events-none
-          "
+      absolute
+      left-3
+      top-1/2
+      -translate-y-1/2
+      text-gray-400
+      pointer-events-none
+      z-10
+    "
         />
 
         <input
@@ -1471,19 +1481,27 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
           disabled={saving}
           onChange={(e) => setDate(e.target.value)}
           className="
-            border
-            border-gray-200
-            p-3
-            pl-10
-            rounded-xl
-            w-full
-            outline-none
-            focus:ring-2
-            focus:ring-pink-300
-            text-sm
-            disabled:bg-gray-50
-            min-w-0
-          "
+      appearance-none
+      border
+      border-gray-200
+      p-3
+      pl-10
+      pr-10
+      rounded-xl
+      w-full
+      min-w-0
+      h-[46px]
+      outline-none
+      focus:ring-2
+      focus:ring-pink-300
+      focus:border-pink-300
+      text-sm
+      text-gray-600
+      bg-white
+      disabled:bg-gray-50
+      disabled:text-gray-400
+      overflow-hidden
+    "
         />
       </div>
 
