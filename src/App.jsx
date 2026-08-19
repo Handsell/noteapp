@@ -21,7 +21,6 @@ function App() {
 
   // =====================================================
   // ROOM
-  // Không cần nhập mã nữa
   // =====================================================
 
   const roomId = "love123";
@@ -33,28 +32,37 @@ function App() {
   const [tab, setTab] = useState("home");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-100 to-pink-50 overflow-x-hidden">
+    <div className="w-full h-[100dvh] bg-gradient-to-b from-pink-100 to-pink-50 overflow-hidden">
       {/* =================================================
           CONTENT
-          Không dùng && để component không bị unmount
       ================================================= */}
 
-      <div className="pb-24">
+      <div className="w-full h-[calc(100dvh-80px)] overflow-hidden">
         {/* ================= HOME ================= */}
 
-        <div className={tab === "home" ? "block" : "hidden"}>
+        <div className={tab === "home" ? "block w-full h-full" : "hidden"}>
           <Home days={days} />
         </div>
 
         {/* ================= PLANS ================= */}
 
-        <div className={tab === "plans" ? "block" : "hidden"}>
+        <div
+          className={
+            tab === "plans" ? "block w-full h-full overflow-y-auto" : "hidden"
+          }
+        >
           <Plans roomId={roomId} />
         </div>
 
         {/* ================= MEMORIES ================= */}
 
-        <div className={tab === "memories" ? "block" : "hidden"}>
+        <div
+          className={
+            tab === "memories"
+              ? "block w-full h-full overflow-y-auto"
+              : "hidden"
+          }
+        >
           <Memories roomId={roomId} />
         </div>
       </div>
@@ -71,6 +79,8 @@ function App() {
           right-0
           z-50
 
+          h-20
+
           bg-white/90
           backdrop-blur-md
           shadow-lg
@@ -78,8 +88,6 @@ function App() {
           flex
           justify-around
           items-center
-
-          h-20
 
           rounded-t-2xl
         "

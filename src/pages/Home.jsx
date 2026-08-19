@@ -4,9 +4,21 @@ import girl from "../assets/girl.jpg";
 
 function Home({ days }) {
   return (
-    <div className="min-h-screen w-full bg-white overflow-x-hidden pb-20">
-      {/* APP CONTAINER */}
-      <main className="relative mx-auto w-full max-w-[768px] h-screen bg-white">
+    <div className="w-full h-full bg-white overflow-hidden">
+      {/* =====================================================
+          APP CONTAINER
+      ===================================================== */}
+      <main
+        className="
+        relative
+        mx-auto
+        w-full
+        max-w-[768px]
+        h-full
+        overflow-hidden
+        bg-white
+        "
+      >
         {/* =====================================================
             BACKGROUND / HERO
         ===================================================== */}
@@ -14,9 +26,9 @@ function Home({ days }) {
           className="
             relative
             w-full
-            h-[500px]
-            sm:h-[560px]
-            md:h-[620px]
+            h-[56dvh]
+            min-h-[390px]
+            max-h-[560px]
             overflow-hidden
           "
         >
@@ -44,14 +56,14 @@ function Home({ days }) {
             className="
               absolute
               left-1/2
-              top-[45%]
+              top-[44%]
 
               -translate-x-1/2
               -translate-y-1/2
 
               w-[68vw]
               max-w-[315px]
-              min-w-[245px]
+              min-w-[220px]
               aspect-square
 
               rounded-full
@@ -77,7 +89,7 @@ function Home({ days }) {
                   font-bold
                   leading-none
                   text-[clamp(17px,5vw,25px)]
-                  mb-4
+                  mb-3
                 "
               >
                 Đang yêu
@@ -86,11 +98,10 @@ function Home({ days }) {
               {/* Days */}
               <h1
                 className="
-                
-                 text-pink-500  
+                  text-pink-500
                   font-bold
                   leading-none
-                  text-[clamp(55px,15vw,82px)]
+                  text-[clamp(50px,15vw,82px)]
                 "
               >
                 {days}
@@ -102,8 +113,8 @@ function Home({ days }) {
                   text-pink-400
                   font-bold
                   leading-none
-                  text-[clamp(20px,5.5vw,30px)]
-                  mt-4
+                  text-[clamp(19px,5.5vw,30px)]
+                  mt-3
                 "
               >
                 ngày
@@ -120,12 +131,14 @@ function Home({ days }) {
             relative
             -mt-[28px]
             w-full
-            min-h-[300px]
+            h-[calc(44dvh+28px)]
+            min-h-0
             bg-white
             rounded-t-[32px]
             px-4
             sm:px-6
             md:px-10
+            z-20
           "
         >
           {/* ===================================================
@@ -134,7 +147,7 @@ function Home({ days }) {
           <div
             className="
               relative
-              -translate-y-[58px]
+              -translate-y-[52px]
               w-full
               max-w-[700px]
               mx-auto
@@ -159,8 +172,8 @@ function Home({ days }) {
               {/* Avatar */}
               <div
                 className="
-                  w-[clamp(105px,27vw,165px)]
-                  h-[clamp(105px,27vw,165px)]
+                  w-[clamp(95px,25vw,155px)]
+                  h-[clamp(95px,25vw,155px)]
                   aspect-square
                   rounded-full
                   p-[3px]
@@ -186,11 +199,11 @@ function Home({ days }) {
               {/* Name */}
               <p
                 className="
-                  mt-4
+                  mt-3
                   text-gray-600
                   font-normal
                   leading-none
-                  text-[clamp(20px,5.5vw,31px)]
+                  text-[clamp(18px,5vw,31px)]
                   whitespace-nowrap
                 "
               >
@@ -228,26 +241,20 @@ function Home({ days }) {
 
                 <span
                   className="
-    inline-flex
-    items-center
-    justify-center
-
-    px-[clamp(7px,2vw,12px)]
-    py-[clamp(4px,1vw,6px)]
-
-    rounded-full
-
-    bg-purple-300
-    text-white
-
-    text-[clamp(9px,2.4vw,14px)]
-
-    leading-tight
-    whitespace-nowrap
-
-    max-w-full
-    shrink
-  "
+                    inline-flex
+                    items-center
+                    justify-center
+                    px-[clamp(7px,2vw,12px)]
+                    py-[clamp(4px,1vw,6px)]
+                    rounded-full
+                    bg-purple-300
+                    text-white
+                    text-[clamp(9px,2.4vw,14px)]
+                    leading-tight
+                    whitespace-nowrap
+                    max-w-full
+                    shrink
+                  "
                 >
                   ♎ Thiên Bình
                 </span>
@@ -261,13 +268,13 @@ function Home({ days }) {
               className="
                 absolute
                 left-1/2
-                top-[125px]
+                top-[105px]
                 -translate-x-1/2
                 z-30
                 flex
                 items-center
                 justify-center
-                text-[clamp(42px,11vw,65px)]
+                text-[clamp(38px,10vw,62px)]
                 leading-none
                 select-none
               "
@@ -291,8 +298,8 @@ function Home({ days }) {
               {/* Avatar */}
               <div
                 className="
-                  w-[clamp(105px,27vw,165px)]
-                  h-[clamp(105px,27vw,165px)]
+                  w-[clamp(95px,25vw,155px)]
+                  h-[clamp(95px,25vw,155px)]
                   aspect-square
                   rounded-full
                   p-[3px]
@@ -318,11 +325,11 @@ function Home({ days }) {
               {/* Name */}
               <p
                 className="
-                  mt-4
+                  mt-3
                   text-gray-600
                   font-normal
                   leading-none
-                  text-[clamp(20px,5.5vw,31px)]
+                  text-[clamp(18px,5vw,31px)]
                   whitespace-nowrap
                 "
               >
@@ -360,35 +367,26 @@ function Home({ days }) {
 
                 <span
                   className="
-    inline-flex
-    items-center
-    justify-center
-
-    px-[clamp(7px,2vw,12px)]
-    py-[clamp(4px,1vw,6px)]
-
-    rounded-full
-
-    bg-purple-300
-    text-white
-
-    text-[clamp(9px,2.4vw,14px)]
-
-    leading-tight
-    whitespace-nowrap
-
-    max-w-full
-    shrink
-  "
+                    inline-flex
+                    items-center
+                    justify-center
+                    px-[clamp(7px,2vw,12px)]
+                    py-[clamp(4px,1vw,6px)]
+                    rounded-full
+                    bg-purple-300
+                    text-white
+                    text-[clamp(9px,2.4vw,14px)]
+                    leading-tight
+                    whitespace-nowrap
+                    max-w-full
+                    shrink
+                  "
                 >
                   ♐ Nhân Mã
                 </span>
               </div>
             </div>
           </div>
-
-          {/* Bottom spacing */}
-          <div className="h-14 sm:h-20" />
         </section>
       </main>
     </div>
