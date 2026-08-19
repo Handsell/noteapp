@@ -4,7 +4,9 @@ import { getAuth } from "firebase/auth";
 import {
   initializeAppCheck,
   ReCaptchaEnterpriseProvider,
+  getToken
 } from "firebase/app-check";
+
 
 // =====================================================
 // FIREBASE CONFIG
@@ -27,6 +29,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // =====================================================
+// APP CHECK
+// =====================================================
+
+// THAY GIÁ TRỊ NÀY BẰNG reCAPTCHA Enterprise SITE KEY
+
+export const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaEnterpriseProvider(
+    "6Lf_LI4tAAAAAHNI9NVAqbWJ1EIOWqS6nSAyvYxC"
+  ),
+  isTokenAutoRefreshEnabled: true,
+});
+
+getToken(appCheck, true)
+  .then((result) => {
+    console.log("🔥 APP CHECK TOKEN OK:", result.token);
+  })
+  .catch((error) => {
+    console.error("❌ APP CHECK ERROR:", error);
+  });
+
+// =====================================================
 // FIRESTORE
 // =====================================================
 
@@ -38,16 +61,3 @@ export const db = getFirestore(app);
 
 export const auth = getAuth(app);
 
-// =====================================================
-// APP CHECK
-// =====================================================
-
-// THAY GIÁ TRỊ NÀY BẰNG reCAPTCHA Enterprise SITE KEY
-const appCheckSiteKey = "6Lf_LI4tAAAAAHNI9NVAqbWJ1EIOWqS6nSAyvYxC";
-
-export const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
-
-  // Giai đoạn đầu để false để test trước
-  isTokenAutoRefreshEnabled: true,
-});
