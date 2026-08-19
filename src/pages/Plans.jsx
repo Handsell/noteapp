@@ -929,10 +929,18 @@ function PlanSkeleton() {
 function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
   const [swiped, setSwiped] = useState(false);
 
+  /* =======================================================
+     DND KIT
+  ======================================================= */
+
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
       id: plan.id,
     });
+
+  /* =======================================================
+     SWIPE
+  ======================================================= */
 
   const handlers = useSwipeable({
     onSwipedLeft: (e) => {
@@ -948,8 +956,22 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
     },
 
     delta: 20,
-    preventScrollOnSwipe: true,
+
+    /*
+     * Không chặn scroll / drag dọc.
+     * Nếu để true sẽ dễ xung đột với dnd-kit.
+     */
+    preventScrollOnSwipe: false,
+
+    /*
+     * Chỉ nhận swipe khi gesture đủ rõ theo chiều ngang.
+     */
+    trackMouse: true,
   });
+
+  /* =======================================================
+     STYLE
+  ======================================================= */
 
   const style = {
     transform: transform
@@ -958,6 +980,10 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
 
     transition,
 
+    /*
+     * Cho phép scroll bình thường trên card.
+     * Riêng drag handle bên dưới sẽ có touch-none.
+     */
     touchAction: "pan-y",
   };
 
@@ -973,7 +999,9 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
         rounded-2xl
       "
     >
-      {/* NỀN XOÁ */}
+      {/* ===================================================
+          NỀN XOÁ
+      =================================================== */}
 
       <div
         className="
@@ -990,7 +1018,9 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
         <button
           onClick={(e) => {
             e.stopPropagation();
+
             onDelete();
+
             setSwiped(false);
           }}
           className="
@@ -1004,10 +1034,11 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
         </button>
       </div>
 
-      {/* CARD */}
+      {/* ===================================================
+          CARD
+      =================================================== */}
 
       <div
-        {...handlers}
         className={`
           relative
           bg-white
@@ -1024,7 +1055,11 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
         `}
       >
         <div className="flex items-center gap-3">
-          {/* DRAG */}
+          {/* =================================================
+              DRAG HANDLE
+
+              CHỈ VÙNG NÀY DÙNG CHO DND-KIT
+          ================================================= */}
 
           <div
             {...listeners}
@@ -1032,19 +1067,30 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
             className="
               cursor-grab
               text-gray-400
+              active:cursor-grabbing
               active:scale-95
               pr-2
               pl-1
               py-2
               shrink-0
+              touch-none
+              select-none
             "
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
           >
             <GripVertical size={28} />
           </div>
 
-          {/* CONTENT */}
+          {/* =================================================
+              CONTENT
+
+              SWIPE CHỈ HOẠT ĐỘNG Ở KHU VỰC NÀY
+          ================================================= */}
 
           <button
+            {...handlers}
             onClick={() => {
               if (swiped) {
                 setSwiped(false);
@@ -1057,11 +1103,22 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
               flex-1
               min-w-0
               text-left
+              select-none
             "
           >
-            <p className="text-gray-700 font-semibold break-words">
+            {/* TÊN PLAN */}
+
+            <p
+              className="
+                text-gray-700
+                font-semibold
+                break-words
+              "
+            >
               {plan.title}
             </p>
+
+            {/* NGÀY */}
 
             {plan.startDate && plan.endDate && (
               <p
@@ -1085,14 +1142,35 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
               </p>
             )}
 
-            <p className="text-xs text-gray-400 mt-1">Nhấn để xem lịch trình</p>
+            {/* DESCRIPTION */}
+
+            <p
+              className="
+                text-xs
+                text-gray-400
+                mt-1
+              "
+            >
+              Nhấn để xem lịch trình
+            </p>
           </button>
 
-          {/* SỬA */}
+          {/* =================================================
+              SỬA
+          ================================================= */}
 
           <button
             onClick={(e) => {
               e.stopPropagation();
+
+              /*
+               * Nếu đang mở swipe thì đóng trước.
+               */
+              if (swiped) {
+                setSwiped(false);
+                return;
+              }
+
               onUpdate();
             }}
             className="
