@@ -55,9 +55,6 @@ function Memories({ roomId }) {
   ======================================================= */
 
   useEffect(() => {
-    // Không setState trực tiếp ở đây khi chưa có roomId.
-    // Tránh warning của React:
-    // "Calling setState synchronously within an effect..."
     if (!roomId) {
       return;
     }
@@ -275,7 +272,9 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
 
         {/* CONTENT */}
 
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0">
+          {/* TITLE */}
+
           <p
             className="
               font-bold
@@ -287,31 +286,52 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
             {plan.title}
           </p>
 
-          {/* NGÀY - KHÔNG CHO TRÀN KHUNG */}
+          {/* NGÀY */}
 
           {plan.startDate && plan.endDate && (
             <div
               className="
-                flex
-                items-start
-                gap-1
-                text-xs
-                text-gray-400
-                mt-1
+                mt-2
+                max-w-full
                 min-w-0
               "
             >
-              <span className="shrink-0">📅</span>
-
-              <span
+              <div
                 className="
-                  min-w-0
-                  break-words
-                  whitespace-normal
+                  inline-flex
+                  max-w-full
+                  items-start
+                  gap-1.5
+                  rounded-lg
+                  bg-gray-50
+                  border
+                  border-gray-100
+                  px-2
+                  py-1.5
+                  text-xs
+                  text-gray-400
                 "
               >
-                {formatDate(plan.startDate)} → {formatDate(plan.endDate)}
-              </span>
+                <CalendarDays
+                  size={13}
+                  className="
+                    shrink-0
+                    mt-0.5
+                    text-gray-400
+                  "
+                />
+
+                <span
+                  className="
+                    min-w-0
+                    break-words
+                    whitespace-normal
+                    leading-4
+                  "
+                >
+                  {formatDate(plan.startDate)} → {formatDate(plan.endDate)}
+                </span>
+              </div>
             </div>
           )}
 
@@ -558,26 +578,47 @@ function ExpenseDetail({ roomId, plan, onBack }) {
           {plan.startDate && plan.endDate && (
             <div
               className="
-                flex
-                items-start
-                gap-1
-                text-xs
-                text-gray-400
-                mt-1
+                mt-2
+                max-w-full
                 min-w-0
               "
             >
-              <span className="shrink-0">📅</span>
-
-              <span
+              <div
                 className="
-                  min-w-0
-                  break-words
-                  whitespace-normal
+                  inline-flex
+                  max-w-full
+                  items-start
+                  gap-1.5
+                  rounded-lg
+                  bg-gray-50
+                  border
+                  border-gray-100
+                  px-2
+                  py-1.5
+                  text-xs
+                  text-gray-400
                 "
               >
-                {formatDate(plan.startDate)} → {formatDate(plan.endDate)}
-              </span>
+                <CalendarDays
+                  size={13}
+                  className="
+                    shrink-0
+                    mt-0.5
+                    text-gray-400
+                  "
+                />
+
+                <span
+                  className="
+                    min-w-0
+                    break-words
+                    whitespace-normal
+                    leading-4
+                  "
+                >
+                  {formatDate(plan.startDate)} → {formatDate(plan.endDate)}
+                </span>
+              </div>
             </div>
           )}
 
@@ -802,10 +843,6 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
   const [date, setDate] = useState(expense?.date || getToday());
 
-  /* =======================================================
-     LỊCH TRÌNH
-  ======================================================= */
-
   const [schedules, setSchedules] = useState([]);
 
   const [loadingSchedules, setLoadingSchedules] = useState(true);
@@ -984,9 +1021,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         </button>
       </div>
 
-      {/* ===================================================
-          TITLE
-      =================================================== */}
+      {/* TITLE */}
 
       <label
         className="
@@ -1019,9 +1054,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         "
       />
 
-      {/* ===================================================
-          AMOUNT
-      =================================================== */}
+      {/* AMOUNT */}
 
       <label
         className="
@@ -1080,9 +1113,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         </span>
       </div>
 
-      {/* ===================================================
-          LỊCH TRÌNH
-      =================================================== */}
+      {/* LỊCH TRÌNH */}
 
       <label
         className="
@@ -1250,9 +1281,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         </div>
       )}
 
-      {/* ===================================================
-          CATEGORY
-      =================================================== */}
+      {/* CATEGORY */}
 
       <label
         className="
@@ -1322,9 +1351,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         />
       </div>
 
-      {/* ===================================================
-          PAID BY
-      =================================================== */}
+      {/* PAID BY */}
 
       <label
         className="
@@ -1412,9 +1439,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         </button>
       </div>
 
-      {/* ===================================================
-          DATE
-      =================================================== */}
+      {/* DATE */}
 
       <label
         className="
@@ -1462,9 +1487,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         />
       </div>
 
-      {/* ===================================================
-          NOTE
-      =================================================== */}
+      {/* NOTE */}
 
       <label
         className="
@@ -1498,9 +1521,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         "
       />
 
-      {/* ===================================================
-          BUTTON
-      =================================================== */}
+      {/* BUTTON */}
 
       <div className="flex gap-2">
         <button
@@ -1726,26 +1747,46 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
           {expense.date && (
             <div
               className="
-                flex
-                items-start
-                gap-1
-                text-xs
-                text-gray-400
-                mt-1
+                mt-2
+                max-w-full
                 min-w-0
               "
             >
-              <span className="shrink-0">📅</span>
-
-              <span
+              <div
                 className="
-                  break-words
-                  whitespace-normal
-                  min-w-0
+                  inline-flex
+                  max-w-full
+                  items-center
+                  gap-1.5
+                  rounded-lg
+                  bg-gray-50
+                  border
+                  border-gray-100
+                  px-2
+                  py-1.5
+                  text-xs
+                  text-gray-400
                 "
               >
-                {formatDate(expense.date)}
-              </span>
+                <CalendarDays
+                  size={13}
+                  className="
+                    shrink-0
+                    text-gray-400
+                  "
+                />
+
+                <span
+                  className="
+                    min-w-0
+                    break-words
+                    whitespace-normal
+                    leading-4
+                  "
+                >
+                  {formatDate(expense.date)}
+                </span>
+              </div>
             </div>
           )}
 
