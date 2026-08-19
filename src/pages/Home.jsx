@@ -6,7 +6,7 @@ function Home({ days }) {
   return (
     <div className="min-h-screen w-full bg-white overflow-x-hidden pb-20">
       {/* APP CONTAINER */}
-      <main className="relative mx-auto w-full max-w-[768px] bg-white">
+      <main className="relative mx-auto w-full max-w-[768px] h-screen bg-white">
         {/* =====================================================
             BACKGROUND / HERO
         ===================================================== */}
