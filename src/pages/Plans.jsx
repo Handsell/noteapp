@@ -534,7 +534,7 @@ function Plans({ roomId }) {
             "
           />
 
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-2 gap-2 mb-3 w-full min-w-0">
             <div>
               <label className="block text-xs text-gray-400 mb-1">
                 Từ ngày
@@ -545,16 +545,20 @@ function Plans({ roomId }) {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="
-                  border
-                  border-gray-200
-                  p-3
-                  rounded-xl
-                  w-full
-                  outline-none
-                  focus:ring-2
-                  focus:ring-pink-300
-                  text-sm
-                "
+    border
+    border-gray-200
+    px-2
+    py-3
+    rounded-xl
+    w-full
+    min-w-0
+    max-w-full
+    outline-none
+    focus:ring-2
+    focus:ring-pink-300
+    text-sm
+    box-border
+  "
               />
             </div>
 
@@ -565,20 +569,24 @@ function Plans({ roomId }) {
 
               <input
                 type="date"
-                value={endDate}
                 min={startDate}
+                value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="
-                  border
-                  border-gray-200
-                  p-3
-                  rounded-xl
-                  w-full
-                  outline-none
-                  focus:ring-2
-                  focus:ring-pink-300
-                  text-sm
-                "
+    border
+    border-gray-200
+    px-2
+    py-3
+    rounded-xl
+    w-full
+    min-w-0
+    max-w-full
+    outline-none
+    focus:ring-2
+    focus:ring-pink-300
+    text-sm
+    box-border
+  "
               />
             </div>
           </div>
@@ -809,8 +817,8 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
           "
         />
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
+        <div className="grid grid-cols-2 gap-2 w-full min-w-0">
+          <div className="min-w-0">
             <label className="block text-xs text-gray-400 mb-1">Từ ngày</label>
 
             <input
@@ -818,20 +826,23 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               className="
-                border
-                border-gray-200
-                p-3
-                rounded-xl
-                w-full
-                outline-none
-                focus:ring-2
-                focus:ring-pink-300
-                text-sm
-              "
+      border
+      border-gray-200
+      p-3
+      rounded-xl
+      w-full
+      min-w-0
+      max-w-full
+      outline-none
+      focus:ring-2
+      focus:ring-pink-300
+      text-sm
+      box-border
+    "
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs text-gray-400 mb-1">Đến ngày</label>
 
             <input
@@ -840,16 +851,19 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               className="
-                border
-                border-gray-200
-                p-3
-                rounded-xl
-                w-full
-                outline-none
-                focus:ring-2
-                focus:ring-pink-300
-                text-sm
-              "
+      border
+      border-gray-200
+      p-3
+      rounded-xl
+      w-full
+      min-w-0
+      max-w-full
+      outline-none
+      focus:ring-2
+      focus:ring-pink-300
+      text-sm
+      box-border
+    "
             />
           </div>
         </div>
@@ -1544,17 +1558,21 @@ function PlanDetail({ roomId, plan, onBack }) {
               max={plan.endDate || undefined}
               onChange={(e) => setNewScheduleDate(e.target.value)}
               className="
-                border
-                border-gray-200
-                p-3
-                pl-10
-                rounded-xl
-                w-full
-                outline-none
-                focus:ring-2
-                focus:ring-pink-300
-                text-sm
-              "
+              border
+              border-gray-200
+              px-2
+              py-3
+              pl-10
+              rounded-xl
+              w-full
+              min-w-0
+              max-w-full
+              outline-none
+              focus:ring-2
+              focus:ring-pink-300
+              text-sm
+              box-border
+             "
             />
           </div>
         </div>
