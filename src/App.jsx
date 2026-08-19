@@ -325,37 +325,39 @@ function App() {
           LOGOUT
       ================================================= */}
 
-      <button
-        onClick={handleLogout}
-        title="Đăng xuất"
-        className="
-          fixed
-          top-4
-          right-4
-          z-[60]
+      {tab === "home" && (
+        <button
+          onClick={handleLogout}
+          title="Đăng xuất"
+          className="
+      fixed
+      top-4
+      right-4
+      z-[60]
 
-          w-10
-          h-10
+      w-10
+      h-10
 
-          rounded-full
+      rounded-full
 
-          bg-white/80
-          backdrop-blur-md
-          shadow-md
+      bg-white/80
+      backdrop-blur-md
+      shadow-md
 
-          flex
-          items-center
-          justify-center
+      flex
+      items-center
+      justify-center
 
-          text-gray-400
-          hover:text-pink-500
+      text-gray-400
+      hover:text-pink-500
 
-          active:scale-90
-          transition
-        "
-      >
-        <FaSignOutAlt size={16} />
-      </button>
+      active:scale-90
+      transition
+    "
+        >
+          <FaSignOutAlt size={16} />
+        </button>
+      )}
 
       {/* =================================================
           CONTENT

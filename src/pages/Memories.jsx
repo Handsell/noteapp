@@ -55,7 +55,12 @@ function Memories({ roomId }) {
   ======================================================= */
 
   useEffect(() => {
-    if (!roomId) return;
+    // Không setState trực tiếp ở đây khi chưa có roomId.
+    // Tránh warning của React:
+    // "Calling setState synchronously within an effect..."
+    if (!roomId) {
+      return;
+    }
 
     const plansRef = collection(db, "rooms", roomId, "plans");
 
@@ -105,9 +110,11 @@ function Memories({ roomId }) {
         w-full
         max-w-[700px]
         mx-auto
-        px-4
+        px-3
+        sm:px-4
         pt-4
         pb-10
+        overflow-x-hidden
       "
     >
       {/* HEADER */}
@@ -190,7 +197,9 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!roomId || !plan?.id) return;
+    if (!roomId || !plan?.id) {
+      return;
+    }
 
     const expensesRef = collection(
       db,
@@ -224,7 +233,9 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
   }, [roomId, plan?.id]);
 
   const total = useMemo(() => {
-    return expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    return expenses.reduce((sum, item) => {
+      return sum + Number(item.amount || 0);
+    }, 0);
   }, [expenses]);
 
   return (
@@ -240,9 +251,10 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
         p-4
         active:scale-[0.98]
         transition
+        overflow-hidden
       "
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 min-w-0">
         {/* ICON */}
 
         <div
@@ -263,42 +275,77 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
 
         {/* CONTENT */}
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <p
             className="
               font-bold
               text-gray-700
               break-words
+              whitespace-normal
             "
           >
             {plan.title}
           </p>
 
+          {/* NGÀY - KHÔNG CHO TRÀN KHUNG */}
+
           {plan.startDate && plan.endDate && (
-            <p
+            <div
               className="
+                flex
+                items-start
+                gap-1
                 text-xs
                 text-gray-400
                 mt-1
+                min-w-0
               "
             >
-              📅 {formatDate(plan.startDate)} → {formatDate(plan.endDate)}
-            </p>
+              <span className="shrink-0">📅</span>
+
+              <span
+                className="
+                  min-w-0
+                  break-words
+                  whitespace-normal
+                "
+              >
+                {formatDate(plan.startDate)} → {formatDate(plan.endDate)}
+              </span>
+            </div>
           )}
+
+          {/* TOTAL */}
 
           <div
             className="
               flex
               items-center
               justify-between
+              gap-3
               mt-3
+              min-w-0
             "
           >
-            <span className="text-xs text-gray-400">
+            <span
+              className="
+                text-xs
+                text-gray-400
+                min-w-0
+                break-words
+              "
+            >
               {loading ? "Đang tải..." : `${expenses.length} khoản chi`}
             </span>
 
-            <span className="font-bold text-pink-500">
+            <span
+              className="
+                font-bold
+                text-pink-500
+                whitespace-nowrap
+                shrink-0
+              "
+            >
               {loading ? "..." : formatMoney(total)}
             </span>
           </div>
@@ -324,7 +371,9 @@ function ExpenseDetail({ roomId, plan, onBack }) {
   ======================================================= */
 
   useEffect(() => {
-    if (!roomId || !plan?.id) return;
+    if (!roomId || !plan?.id) {
+      return;
+    }
 
     const expensesRef = collection(
       db,
@@ -362,7 +411,9 @@ function ExpenseDetail({ roomId, plan, onBack }) {
   ======================================================= */
 
   const total = useMemo(() => {
-    return expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    return expenses.reduce((sum, item) => {
+      return sum + Number(item.amount || 0);
+    }, 0);
   }, [expenses]);
 
   /* =======================================================
@@ -372,7 +423,9 @@ function ExpenseDetail({ roomId, plan, onBack }) {
   const youPaid = useMemo(() => {
     return expenses
       .filter((item) => item.paidBy === "you")
-      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      .reduce((sum, item) => {
+        return sum + Number(item.amount || 0);
+      }, 0);
   }, [expenses]);
 
   /* =======================================================
@@ -382,7 +435,9 @@ function ExpenseDetail({ roomId, plan, onBack }) {
   const partnerPaid = useMemo(() => {
     return expenses
       .filter((item) => item.paidBy === "partner")
-      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      .reduce((sum, item) => {
+        return sum + Number(item.amount || 0);
+      }, 0);
   }, [expenses]);
 
   /* =======================================================
@@ -394,10 +449,9 @@ function ExpenseDetail({ roomId, plan, onBack }) {
   }, [expenses]);
 
   const splitTotal = useMemo(() => {
-    return splitExpenses.reduce(
-      (sum, item) => sum + Number(item.amount || 0),
-      0,
-    );
+    return splitExpenses.reduce((sum, item) => {
+      return sum + Number(item.amount || 0);
+    }, 0);
   }, [splitExpenses]);
 
   const youActualPaid = youPaid + splitTotal / 2;
@@ -411,7 +465,9 @@ function ExpenseDetail({ roomId, plan, onBack }) {
   const deleteExpense = async (expense) => {
     const confirmed = window.confirm(`Xóa khoản "${expense.title}"?`);
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
       await deleteDoc(
@@ -445,9 +501,11 @@ function ExpenseDetail({ roomId, plan, onBack }) {
         w-full
         max-w-[700px]
         mx-auto
-        px-4
+        px-3
+        sm:px-4
         pt-4
         pb-10
+        overflow-x-hidden
       "
     >
       {/* HEADER */}
@@ -458,6 +516,7 @@ function ExpenseDetail({ roomId, plan, onBack }) {
           items-center
           gap-3
           mb-5
+          min-w-0
         "
       >
         <button
@@ -481,19 +540,48 @@ function ExpenseDetail({ roomId, plan, onBack }) {
           <ArrowLeft size={20} />
         </button>
 
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1
             className="
               text-xl
               font-bold
               text-gray-700
               break-words
+              whitespace-normal
             "
           >
             {plan.title}
           </h1>
 
-          <p className="text-sm text-gray-400">Chi phí</p>
+          {/* NGÀY PLAN */}
+
+          {plan.startDate && plan.endDate && (
+            <div
+              className="
+                flex
+                items-start
+                gap-1
+                text-xs
+                text-gray-400
+                mt-1
+                min-w-0
+              "
+            >
+              <span className="shrink-0">📅</span>
+
+              <span
+                className="
+                  min-w-0
+                  break-words
+                  whitespace-normal
+                "
+              >
+                {formatDate(plan.startDate)} → {formatDate(plan.endDate)}
+              </span>
+            </div>
+          )}
+
+          <p className="text-sm text-gray-400 mt-1">Chi phí</p>
         </div>
       </div>
 
@@ -504,8 +592,10 @@ function ExpenseDetail({ roomId, plan, onBack }) {
           bg-white
           rounded-2xl
           shadow-md
-          p-5
+          p-4
+          sm:p-5
           mb-4
+          overflow-hidden
         "
       >
         <p className="text-sm text-gray-400">Tổng chi phí</p>
@@ -516,6 +606,7 @@ function ExpenseDetail({ roomId, plan, onBack }) {
             font-bold
             text-pink-500
             mt-1
+            break-words
           "
         >
           {formatMoney(total)}
@@ -534,11 +625,13 @@ function ExpenseDetail({ roomId, plan, onBack }) {
               bg-pink-50
               rounded-xl
               p-3
+              min-w-0
+              overflow-hidden
             "
           >
             <p className="text-xs text-gray-400">Bạn đã trả</p>
 
-            <p className="font-bold text-gray-700 mt-1">
+            <p className="font-bold text-gray-700 mt-1 break-words">
               {formatMoney(youActualPaid)}
             </p>
           </div>
@@ -548,11 +641,13 @@ function ExpenseDetail({ roomId, plan, onBack }) {
               bg-blue-50
               rounded-xl
               p-3
+              min-w-0
+              overflow-hidden
             "
           >
             <p className="text-xs text-gray-400">Người yêu đã trả</p>
 
-            <p className="font-bold text-gray-700 mt-1">
+            <p className="font-bold text-gray-700 mt-1 break-words">
               {formatMoney(partnerActualPaid)}
             </p>
           </div>
@@ -565,9 +660,19 @@ function ExpenseDetail({ roomId, plan, onBack }) {
             rounded-xl
             p-3
             text-center
+            overflow-hidden
           "
         >
-          <p className="text-sm text-gray-500">{balanceText}</p>
+          <p
+            className="
+              text-sm
+              text-gray-500
+              break-words
+              whitespace-normal
+            "
+          >
+            {balanceText}
+          </p>
         </div>
       </div>
 
@@ -625,7 +730,9 @@ function ExpenseDetail({ roomId, plan, onBack }) {
           bg-white
           rounded-2xl
           shadow
-          p-4
+          p-3
+          sm:p-4
+          overflow-hidden
         "
       >
         <div
@@ -633,12 +740,15 @@ function ExpenseDetail({ roomId, plan, onBack }) {
             flex
             items-center
             justify-between
+            gap-3
             mb-3
           "
         >
           <h2 className="font-bold text-gray-700">Các khoản chi</h2>
 
-          <span className="text-xs text-gray-400">{expenses.length} khoản</span>
+          <span className="text-xs text-gray-400 whitespace-nowrap">
+            {expenses.length} khoản
+          </span>
         </div>
 
         {loading ? (
@@ -766,13 +876,11 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
     if (!cleanTitle) {
       alert("Vui lòng nhập tên khoản chi");
-
       return;
     }
 
     if (!cleanAmount || cleanAmount <= 0) {
       alert("Vui lòng nhập số tiền hợp lệ");
-
       return;
     }
 
@@ -832,10 +940,12 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         bg-white
         rounded-2xl
         shadow-md
-        p-4
+        p-3
+        sm:p-4
         mb-4
         border
         border-pink-100
+        overflow-hidden
       "
     >
       {/* HEADER */}
@@ -845,6 +955,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
           flex
           items-center
           justify-between
+          gap-3
           mb-4
         "
       >
@@ -866,6 +977,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
             items-center
             justify-center
             disabled:opacity-50
+            shrink-0
           "
         >
           <X size={17} />
@@ -1044,55 +1156,55 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
                 disabled={saving}
                 onClick={() => setSelectedScheduleId(schedule.id)}
                 className={`
-                    w-full
-                    text-left
-                    border
-                    rounded-xl
-                    p-3
-                    flex
-                    items-center
-                    gap-3
-                    transition
-                    disabled:opacity-50
-                    ${
-                      active
-                        ? "bg-pink-50 border-pink-300"
-                        : "bg-white border-gray-200"
-                    }
-                  `}
+                  w-full
+                  text-left
+                  border
+                  rounded-xl
+                  p-3
+                  flex
+                  items-center
+                  gap-3
+                  transition
+                  disabled:opacity-50
+                  overflow-hidden
+                  ${
+                    active
+                      ? "bg-pink-50 border-pink-300"
+                      : "bg-white border-gray-200"
+                  }
+                `}
               >
                 <div
                   className={`
-                      w-8
-                      h-8
-                      rounded-lg
-                      flex
-                      items-center
-                      justify-center
-                      text-xs
-                      font-bold
-                      shrink-0
-                      ${
-                        active
-                          ? "bg-pink-500 text-white"
-                          : "bg-gray-100 text-gray-400"
-                      }
-                    `}
+                    w-8
+                    h-8
+                    rounded-lg
+                    flex
+                    items-center
+                    justify-center
+                    text-xs
+                    font-bold
+                    shrink-0
+                    ${
+                      active
+                        ? "bg-pink-500 text-white"
+                        : "bg-gray-100 text-gray-400"
+                    }
+                  `}
                 >
                   {active ? <Check size={16} /> : index + 1}
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 overflow-hidden">
                   <p
                     className={`
-                        text-sm
-                        break-words
-                        ${
-                          active
-                            ? "font-semibold text-pink-600"
-                            : "text-gray-600"
-                        }
-                      `}
+                      text-sm
+                      break-words
+                      whitespace-normal
+                      ${
+                        active ? "font-semibold text-pink-600" : "text-gray-600"
+                      }
+                    `}
                   >
                     {schedule.text || "Lịch trình"}
                   </p>
@@ -1109,7 +1221,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
         <div
           className="
             flex
-            items-center
+            items-start
             gap-2
             bg-pink-50
             border
@@ -1118,15 +1230,18 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
             px-3
             py-2
             mb-3
+            min-w-0
           "
         >
-          <Receipt size={16} className="text-pink-500 shrink-0" />
+          <Receipt size={16} className="text-pink-500 shrink-0 mt-0.5" />
 
           <p
             className="
               text-xs
               text-pink-600
               break-words
+              whitespace-normal
+              min-w-0
             "
           >
             Chi phí thuộc:{" "}
@@ -1321,6 +1436,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
             top-1/2
             -translate-y-1/2
             text-gray-400
+            pointer-events-none
           "
         />
 
@@ -1341,6 +1457,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
             focus:ring-pink-300
             text-sm
             disabled:bg-gray-50
+            min-w-0
           "
         />
       </div>
@@ -1400,6 +1517,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
             active:scale-95
             transition
             disabled:opacity-50
+            min-w-0
           "
         >
           {saving ? "Đang lưu..." : expense ? "Lưu thay đổi" : "Thêm khoản chi"}
@@ -1416,6 +1534,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
             rounded-xl
             active:scale-95
             disabled:opacity-50
+            shrink-0
           "
         >
           Hủy
@@ -1455,7 +1574,8 @@ function CategoryButton({ value, current, onClick, icon, label }) {
       `}
     >
       {icon}
-      {label}
+
+      <span className="text-center break-words">{label}</span>
     </button>
   );
 }
@@ -1474,6 +1594,7 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
         border-gray-100
         rounded-2xl
         p-3
+        overflow-hidden
       "
     >
       <div
@@ -1481,6 +1602,7 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
           flex
           items-start
           gap-3
+          min-w-0
         "
       >
         {/* CATEGORY ICON */}
@@ -1502,13 +1624,20 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
 
         {/* CONTENT */}
 
-        <div className="flex-1 min-w-0">
+        <div
+          className="
+            flex-1
+            min-w-0
+            overflow-hidden
+          "
+        >
           <div
             className="
               flex
               items-start
               justify-between
               gap-2
+              min-w-0
             "
           >
             <p
@@ -1516,6 +1645,8 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
                 font-semibold
                 text-gray-700
                 break-words
+                whitespace-normal
+                min-w-0
               "
             >
               {expense.title}
@@ -1526,6 +1657,7 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
                 font-bold
                 text-gray-700
                 whitespace-nowrap
+                shrink-0
               "
             >
               {formatMoney(expense.amount)}
@@ -1537,8 +1669,8 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
           {expense.scheduleText && (
             <div
               className="
-                inline-flex
-                items-center
+                flex
+                items-start
                 gap-1
                 mt-2
                 px-2
@@ -1548,11 +1680,20 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
                 text-pink-500
                 text-xs
                 max-w-full
+                w-fit
               "
             >
-              <CalendarDays size={13} />
+              <CalendarDays size={13} className="shrink-0 mt-0.5" />
 
-              <span className="break-words">{expense.scheduleText}</span>
+              <span
+                className="
+                  break-words
+                  whitespace-normal
+                  min-w-0
+                "
+              >
+                {expense.scheduleText}
+              </span>
             </div>
           )}
 
@@ -1583,15 +1724,29 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
           {/* DATE */}
 
           {expense.date && (
-            <p
+            <div
               className="
+                flex
+                items-start
+                gap-1
                 text-xs
                 text-gray-400
                 mt-1
+                min-w-0
               "
             >
-              📅 {formatDate(expense.date)}
-            </p>
+              <span className="shrink-0">📅</span>
+
+              <span
+                className="
+                  break-words
+                  whitespace-normal
+                  min-w-0
+                "
+              >
+                {formatDate(expense.date)}
+              </span>
+            </div>
           )}
 
           {/* NOTE */}
@@ -1680,14 +1835,16 @@ function PlanExpenseSkeleton() {
             h-12
             rounded-2xl
             bg-gray-200
+            shrink-0
           "
         />
 
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div
             className="
               h-5
               w-40
+              max-w-full
               bg-gray-200
               rounded
               mb-2
@@ -1698,6 +1855,7 @@ function PlanExpenseSkeleton() {
             className="
               h-3
               w-32
+              max-w-full
               bg-gray-100
               rounded
             "
