@@ -127,7 +127,18 @@ function App() {
 
   if (authLoading) {
     return (
-      <div className="w-full h-[100dvh] bg-gradient-to-b from-pink-100 to-pink-50 flex items-center justify-center">
+      <div
+        className="
+          w-full
+          min-h-[100dvh]
+          bg-gradient-to-b
+          from-pink-100
+          to-pink-50
+          flex
+          items-center
+          justify-center
+        "
+      >
         <div className="flex flex-col items-center gap-3">
           <div
             className="
@@ -158,7 +169,7 @@ function App() {
       <div
         className="
           w-full
-          h-[100dvh]
+          min-h-[100dvh]
           bg-gradient-to-b
           from-pink-100
           to-pink-50
@@ -166,6 +177,7 @@ function App() {
           items-center
           justify-center
           px-5
+          overflow-y-auto
         "
       >
         <div
@@ -177,6 +189,7 @@ function App() {
             rounded-3xl
             shadow-xl
             p-6
+            my-6
           "
         >
           {/* ================= LOGO ================= */}
@@ -212,7 +225,15 @@ function App() {
             {/* EMAIL */}
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1.5">
+              <label
+                className="
+                  block
+                  text-sm
+                  font-medium
+                  text-gray-600
+                  mb-1.5
+                "
+              >
                 Email
               </label>
 
@@ -242,7 +263,15 @@ function App() {
             {/* PASSWORD */}
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1.5">
+              <label
+                className="
+                  block
+                  text-sm
+                  font-medium
+                  text-gray-600
+                  mb-1.5
+                "
+              >
                 Mật khẩu
               </label>
 
@@ -320,53 +349,37 @@ function App() {
   // =====================================================
 
   return (
-    <div className="w-full h-[100dvh] bg-gradient-to-b from-pink-100 to-pink-50 overflow-hidden">
+    <div
+      className="
+        fixed
+        inset-0
+        w-full
+        overflow-hidden
+        bg-gradient-to-b
+        from-pink-100
+        to-pink-50
+      "
+    >
       {/* =================================================
-          LOGOUT
+          APP CONTENT
       ================================================= */}
 
-      {tab === "home" && (
-        <button
-          onClick={handleLogout}
-          title="Đăng xuất"
-          className="
-      fixed
-      top-4
-      right-4
-      z-[60]
-
-      w-10
-      h-10
-
-      rounded-full
-
-      bg-white/80
-      backdrop-blur-md
-      shadow-md
-
-      flex
-      items-center
-      justify-center
-
-      text-gray-400
-      hover:text-pink-500
-
-      active:scale-90
-      transition
-    "
-        >
-          <FaSignOutAlt size={16} />
-        </button>
-      )}
-
-      {/* =================================================
-          CONTENT
-      ================================================= */}
-
-      <div className="w-full h-[calc(100dvh-80px)] overflow-hidden">
+      <div
+        className="
+          absolute
+          inset-0
+          bottom-20
+          w-full
+          overflow-hidden
+        "
+      >
         {/* ================= HOME ================= */}
 
-        <div className={tab === "home" ? "block w-full h-full" : "hidden"}>
+        <div
+          className={
+            tab === "home" ? "block w-full h-full overflow-hidden" : "hidden"
+          }
+        >
           <Home days={days} />
         </div>
 
@@ -374,7 +387,17 @@ function App() {
 
         <div
           className={
-            tab === "plans" ? "block w-full h-full overflow-y-auto" : "hidden"
+            tab === "plans"
+              ? `
+                block
+                w-full
+                h-full
+                overflow-y-auto
+                overflow-x-hidden
+                overscroll-contain
+                pb-6
+              `
+              : "hidden"
           }
         >
           <Plans roomId={roomId} />
@@ -385,7 +408,15 @@ function App() {
         <div
           className={
             tab === "memories"
-              ? "block w-full h-full overflow-y-auto"
+              ? `
+                block
+                w-full
+                h-full
+                overflow-y-auto
+                overflow-x-hidden
+                overscroll-contain
+                pb-6
+              `
               : "hidden"
           }
         >
@@ -394,35 +425,82 @@ function App() {
       </div>
 
       {/* =================================================
-          TASKBAR
+          LOGOUT
       ================================================= */}
 
-      <div
+      {tab === "home" && (
+        <button
+          type="button"
+          onClick={handleLogout}
+          title="Đăng xuất"
+          className="
+            fixed
+            top-4
+            right-4
+            z-[60]
+
+            w-10
+            h-10
+
+            rounded-full
+
+            bg-white/80
+            backdrop-blur-md
+            shadow-md
+
+            flex
+            items-center
+            justify-center
+
+            text-gray-400
+            hover:text-pink-500
+
+            active:scale-90
+            transition
+          "
+        >
+          <FaSignOutAlt size={16} />
+        </button>
+      )}
+
+      {/* =================================================
+          BOTTOM TAB BAR
+      ================================================= */}
+
+      <nav
         className="
           fixed
-          bottom-0
           left-0
           right-0
-          z-50
+          bottom-0
+          z-[50]
 
           h-20
 
-          bg-white/90
+          bg-white/95
           backdrop-blur-md
-          shadow-lg
+          shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
 
           flex
-          justify-around
           items-center
+          justify-around
 
           rounded-t-2xl
+
+          shrink-0
+
+          pb-[env(safe-area-inset-bottom)]
         "
       >
         {/* ================= HOME ================= */}
 
         <button
+          type="button"
           onClick={() => setTab("home")}
           className={`
+            h-full
+            min-w-[80px]
+
             flex
             flex-col
             items-center
@@ -445,8 +523,12 @@ function App() {
         {/* ================= PLANS ================= */}
 
         <button
+          type="button"
           onClick={() => setTab("plans")}
           className={`
+            h-full
+            min-w-[80px]
+
             flex
             flex-col
             items-center
@@ -469,8 +551,12 @@ function App() {
         {/* ================= MEMORIES ================= */}
 
         <button
+          type="button"
           onClick={() => setTab("memories")}
           className={`
+            h-full
+            min-w-[80px]
+
             flex
             flex-col
             items-center
@@ -489,7 +575,7 @@ function App() {
 
           <span>TripExpenses</span>
         </button>
-      </div>
+      </nav>
     </div>
   );
 }
