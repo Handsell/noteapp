@@ -56,7 +56,7 @@ function Memories({ roomId }) {
 
   useEffect(() => {
     if (!roomId) {
-      return;
+      return undefined;
     }
 
     const plansRef = collection(db, "rooms", roomId, "plans");
@@ -117,23 +117,9 @@ function Memories({ roomId }) {
       {/* HEADER */}
 
       <div className="mb-5">
-        <h1
-          className="
-            text-2xl
-            font-bold
-            text-gray-700
-          "
-        >
-          Chi phí 💰
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-700">Chi phí 💰</h1>
 
-        <p
-          className="
-            text-sm
-            text-gray-400
-            mt-1
-          "
-        >
+        <p className="text-sm text-gray-400 mt-1">
           Theo dõi chi phí cho từng kế hoạch ❤️
         </p>
       </div>
@@ -159,13 +145,7 @@ function Memories({ roomId }) {
 
           <p className="text-gray-400">Chưa có kế hoạch nào</p>
 
-          <p
-            className="
-              text-xs
-              text-gray-300
-              mt-2
-            "
-          >
+          <p className="text-xs text-gray-300 mt-2">
             Hãy tạo một kế hoạch trước nhé
           </p>
         </div>
@@ -195,7 +175,7 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
 
   useEffect(() => {
     if (!roomId || !plan?.id) {
-      return;
+      return undefined;
     }
 
     const expensesRef = collection(
@@ -281,6 +261,7 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
               text-gray-700
               break-words
               whitespace-normal
+              leading-5
             "
           >
             {plan.title}
@@ -289,13 +270,7 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
           {/* NGÀY */}
 
           {plan.startDate && plan.endDate && (
-            <div
-              className="
-                mt-2
-                max-w-full
-                min-w-0
-              "
-            >
+            <div className="mt-2 max-w-full min-w-0">
               <div
                 className="
                   inline-flex
@@ -314,11 +289,7 @@ function PlanExpenseCard({ plan, roomId, onClick }) {
               >
                 <CalendarDays
                   size={13}
-                  className="
-                    shrink-0
-                    mt-0.5
-                    text-gray-400
-                  "
+                  className="shrink-0 mt-0.5 text-gray-400"
                 />
 
                 <span
@@ -392,7 +363,7 @@ function ExpenseDetail({ roomId, plan, onBack }) {
 
   useEffect(() => {
     if (!roomId || !plan?.id) {
-      return;
+      return undefined;
     }
 
     const expensesRef = collection(
@@ -515,6 +486,33 @@ function ExpenseDetail({ roomId, plan, onBack }) {
     balanceText = `Bạn cần trả người yêu ${formatMoney(Math.abs(balance) / 2)}`;
   }
 
+  /* =======================================================
+     MỞ THÊM KHOẢN CHI
+  ======================================================= */
+
+  const handleOpenCreate = () => {
+    setEditingExpense(null);
+    setShowCreate(true);
+  };
+
+  /* =======================================================
+     ĐÓNG FORM
+  ======================================================= */
+
+  const handleCloseForm = () => {
+    setShowCreate(false);
+    setEditingExpense(null);
+  };
+
+  /* =======================================================
+     MỞ SỬA
+  ======================================================= */
+
+  const handleEdit = (expense) => {
+    setShowCreate(false);
+    setEditingExpense(expense);
+  };
+
   return (
     <div
       className="
@@ -533,7 +531,7 @@ function ExpenseDetail({ roomId, plan, onBack }) {
       <div
         className="
           flex
-          items-center
+          items-start
           gap-3
           mb-5
           min-w-0
@@ -568,21 +566,14 @@ function ExpenseDetail({ roomId, plan, onBack }) {
               text-gray-700
               break-words
               whitespace-normal
+              leading-6
             "
           >
             {plan.title}
           </h1>
 
-          {/* NGÀY PLAN */}
-
           {plan.startDate && plan.endDate && (
-            <div
-              className="
-                mt-2
-                max-w-full
-                min-w-0
-              "
-            >
+            <div className="mt-2 max-w-full min-w-0">
               <div
                 className="
                   inline-flex
@@ -601,11 +592,7 @@ function ExpenseDetail({ roomId, plan, onBack }) {
               >
                 <CalendarDays
                   size={13}
-                  className="
-                    shrink-0
-                    mt-0.5
-                    text-gray-400
-                  "
+                  className="shrink-0 mt-0.5 text-gray-400"
                 />
 
                 <span
@@ -719,29 +706,31 @@ function ExpenseDetail({ roomId, plan, onBack }) {
 
       {/* ADD BUTTON */}
 
-      <button
-        type="button"
-        onClick={() => setShowCreate(true)}
-        className="
-          w-full
-          bg-pink-500
-          text-white
-          py-3
-          rounded-xl
-          font-semibold
-          flex
-          items-center
-          justify-center
-          gap-2
-          shadow-md
-          active:scale-[0.98]
-          transition
-          mb-4
-        "
-      >
-        <Plus size={20} />
-        Thêm khoản chi
-      </button>
+      {!showCreate && !editingExpense && (
+        <button
+          type="button"
+          onClick={handleOpenCreate}
+          className="
+            w-full
+            bg-pink-500
+            text-white
+            py-3
+            rounded-xl
+            font-semibold
+            flex
+            items-center
+            justify-center
+            gap-2
+            shadow-md
+            active:scale-[0.98]
+            transition
+            mb-4
+          "
+        >
+          <Plus size={20} />
+          Thêm khoản chi
+        </button>
+      )}
 
       {/* CREATE */}
 
@@ -749,7 +738,7 @@ function ExpenseDetail({ roomId, plan, onBack }) {
         <ExpenseForm
           roomId={roomId}
           planId={plan.id}
-          onClose={() => setShowCreate(false)}
+          onClose={handleCloseForm}
         />
       )}
 
@@ -760,7 +749,7 @@ function ExpenseDetail({ roomId, plan, onBack }) {
           roomId={roomId}
           planId={plan.id}
           expense={editingExpense}
-          onClose={() => setEditingExpense(null)}
+          onClose={handleCloseForm}
         />
       )}
 
@@ -813,7 +802,7 @@ function ExpenseDetail({ roomId, plan, onBack }) {
               <ExpenseItem
                 key={expense.id}
                 expense={expense}
-                onEdit={() => setEditingExpense(expense)}
+                onEdit={() => handleEdit(expense)}
                 onDelete={() => deleteExpense(expense)}
               />
             ))}
@@ -844,7 +833,6 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
   const [date, setDate] = useState(expense?.date || getToday());
 
   const [schedules, setSchedules] = useState([]);
-
   const [loadingSchedules, setLoadingSchedules] = useState(true);
 
   const [selectedScheduleId, setSelectedScheduleId] = useState(
@@ -859,7 +847,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
   useEffect(() => {
     if (!roomId || !planId) {
-      return;
+      return undefined;
     }
 
     const schedulesRef = collection(
@@ -928,21 +916,13 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
       const data = {
         title: cleanTitle,
-
         amount: cleanAmount,
-
         category,
-
         paidBy,
-
         note: note.trim(),
-
         date,
-
         scheduleId: selectedScheduleId || null,
-
         scheduleText: selectedScheduleText || "",
-
         updatedAt: serverTimestamp(),
       };
 
@@ -1023,16 +1003,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
       {/* TITLE */}
 
-      <label
-        className="
-          block
-          text-xs
-          text-gray-400
-          mb-1
-        "
-      >
-        Khoản chi
-      </label>
+      <label className="block text-xs text-gray-400 mb-1">Khoản chi</label>
 
       <input
         autoFocus
@@ -1056,16 +1027,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
       {/* AMOUNT */}
 
-      <label
-        className="
-          block
-          text-xs
-          text-gray-400
-          mb-1
-        "
-      >
-        Số tiền
-      </label>
+      <label className="block text-xs text-gray-400 mb-1">Số tiền</label>
 
       <div className="relative mb-3">
         <input
@@ -1115,16 +1077,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
       {/* LỊCH TRÌNH */}
 
-      <label
-        className="
-          block
-          text-xs
-          text-gray-400
-          mb-1
-        "
-      >
-        Lịch trình
-      </label>
+      <label className="block text-xs text-gray-400 mb-1">Lịch trình</label>
 
       {loadingSchedules ? (
         <div
@@ -1187,41 +1140,41 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
                 disabled={saving}
                 onClick={() => setSelectedScheduleId(schedule.id)}
                 className={`
-                  w-full
-                  text-left
-                  border
-                  rounded-xl
-                  p-3
-                  flex
-                  items-center
-                  gap-3
-                  transition
-                  disabled:opacity-50
-                  overflow-hidden
-                  ${
-                    active
-                      ? "bg-pink-50 border-pink-300"
-                      : "bg-white border-gray-200"
-                  }
-                `}
+                    w-full
+                    text-left
+                    border
+                    rounded-xl
+                    p-3
+                    flex
+                    items-center
+                    gap-3
+                    transition
+                    disabled:opacity-50
+                    overflow-hidden
+                    ${
+                      active
+                        ? "bg-pink-50 border-pink-300"
+                        : "bg-white border-gray-200"
+                    }
+                  `}
               >
                 <div
                   className={`
-                    w-8
-                    h-8
-                    rounded-lg
-                    flex
-                    items-center
-                    justify-center
-                    text-xs
-                    font-bold
-                    shrink-0
-                    ${
-                      active
-                        ? "bg-pink-500 text-white"
-                        : "bg-gray-100 text-gray-400"
-                    }
-                  `}
+                      w-8
+                      h-8
+                      rounded-lg
+                      flex
+                      items-center
+                      justify-center
+                      text-xs
+                      font-bold
+                      shrink-0
+                      ${
+                        active
+                          ? "bg-pink-500 text-white"
+                          : "bg-gray-100 text-gray-400"
+                      }
+                    `}
                 >
                   {active ? <Check size={16} /> : index + 1}
                 </div>
@@ -1229,13 +1182,15 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
                 <div className="flex-1 min-w-0 overflow-hidden">
                   <p
                     className={`
-                      text-sm
-                      break-words
-                      whitespace-normal
-                      ${
-                        active ? "font-semibold text-pink-600" : "text-gray-600"
-                      }
-                    `}
+                        text-sm
+                        break-words
+                        whitespace-normal
+                        ${
+                          active
+                            ? "font-semibold text-pink-600"
+                            : "text-gray-600"
+                        }
+                      `}
                   >
                     {schedule.text || "Lịch trình"}
                   </p>
@@ -1264,7 +1219,14 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
             min-w-0
           "
         >
-          <Receipt size={16} className="text-pink-500 shrink-0 mt-0.5" />
+          <Receipt
+            size={16}
+            className="
+              text-pink-500
+              shrink-0
+              mt-0.5
+            "
+          />
 
           <p
             className="
@@ -1283,16 +1245,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
       {/* CATEGORY */}
 
-      <label
-        className="
-          block
-          text-xs
-          text-gray-400
-          mb-1
-        "
-      >
-        Danh mục
-      </label>
+      <label className="block text-xs text-gray-400 mb-1">Danh mục</label>
 
       <div
         className="
@@ -1353,16 +1306,7 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
       {/* PAID BY */}
 
-      <label
-        className="
-          block
-          text-xs
-          text-gray-400
-          mb-1
-        "
-      >
-        Ai trả?
-      </label>
+      <label className="block text-xs text-gray-400 mb-1">Ai trả?</label>
 
       <div
         className="
@@ -1441,38 +1385,27 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
 
       {/* DATE */}
 
-      <label
-        className="
-    block
-    text-xs
-    text-gray-400
-    mb-1
-  "
-      >
-        Ngày
-      </label>
+      <label className="block text-xs text-gray-400 mb-1">Ngày</label>
 
       <div
         className="
-    relative
-    mb-3
-    w-full
-    min-w-0
-  "
+          relative
+          mb-3
+          w-full
+          min-w-0
+        "
       >
-        {/* ICON */}
-
         <CalendarDays
           size={17}
           className="
-      absolute
-      left-3
-      top-1/2
-      -translate-y-1/2
-      text-gray-400
-      pointer-events-none
-      z-10
-    "
+            absolute
+            left-3
+            top-1/2
+            -translate-y-1/2
+            text-gray-400
+            pointer-events-none
+            z-10
+          "
         />
 
         <input
@@ -1481,42 +1414,33 @@ function ExpenseForm({ roomId, planId, expense, onClose }) {
           disabled={saving}
           onChange={(e) => setDate(e.target.value)}
           className="
-      appearance-none
-      border
-      border-gray-200
-      p-3
-      pl-10
-      pr-10
-      rounded-xl
-      w-full
-      min-w-0
-      h-[46px]
-      outline-none
-      focus:ring-2
-      focus:ring-pink-300
-      focus:border-pink-300
-      text-sm
-      text-gray-600
-      bg-white
-      disabled:bg-gray-50
-      disabled:text-gray-400
-      overflow-hidden
-    "
+            appearance-none
+            border
+            border-gray-200
+            p-3
+            pl-10
+            pr-10
+            rounded-xl
+            w-full
+            min-w-0
+            h-[46px]
+            outline-none
+            focus:ring-2
+            focus:ring-pink-300
+            focus:border-pink-300
+            text-sm
+            text-gray-600
+            bg-white
+            disabled:bg-gray-50
+            disabled:text-gray-400
+            overflow-hidden
+          "
         />
       </div>
 
       {/* NOTE */}
 
-      <label
-        className="
-          block
-          text-xs
-          text-gray-400
-          mb-1
-        "
-      >
-        Ghi chú
-      </label>
+      <label className="block text-xs text-gray-400 mb-1">Ghi chú</label>
 
       <textarea
         value={note}
@@ -1670,12 +1594,14 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
             overflow-hidden
           "
         >
+          {/* TITLE + MONEY */}
+
           <div
             className="
               flex
               items-start
               justify-between
-              gap-2
+              gap-3
               min-w-0
             "
           >
@@ -1686,6 +1612,7 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
                 break-words
                 whitespace-normal
                 min-w-0
+                flex-1
               "
             >
               {expense.title}
@@ -1738,38 +1665,18 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
 
           {/* CATEGORY */}
 
-          <p
-            className="
-              text-xs
-              text-gray-400
-              mt-2
-            "
-          >
-            {category.label}
-          </p>
+          <p className="text-xs text-gray-400 mt-2">{category.label}</p>
 
           {/* PAID BY */}
 
-          <p
-            className="
-              text-xs
-              text-gray-400
-              mt-1
-            "
-          >
+          <p className="text-xs text-gray-400 mt-1">
             {getPaidByText(expense.paidBy)}
           </p>
 
           {/* DATE */}
 
           {expense.date && (
-            <div
-              className="
-                mt-2
-                max-w-full
-                min-w-0
-              "
-            >
+            <div className="mt-2 max-w-full min-w-0">
               <div
                 className="
                   inline-flex
@@ -1786,13 +1693,7 @@ function ExpenseItem({ expense, onEdit, onDelete }) {
                   text-gray-400
                 "
               >
-                <CalendarDays
-                  size={13}
-                  className="
-                    shrink-0
-                    text-gray-400
-                  "
-                />
+                <CalendarDays size={13} className="shrink-0 text-gray-400" />
 
                 <span
                   className="

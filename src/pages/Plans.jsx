@@ -244,7 +244,6 @@ function groupSchedulesByDate(items) {
 
 /* =========================================================
    DATE INPUT CLASS
-   FIX MOBILE OVERFLOW
 ========================================================= */
 
 const dateInputClass = `
@@ -550,8 +549,6 @@ function Plans({ roomId }) {
               min-w-0
             "
           >
-            {/* START DATE */}
-
             <div className="min-w-0 w-full overflow-hidden">
               <label className="block text-xs text-gray-400 mb-1">
                 Từ ngày
@@ -564,8 +561,6 @@ function Plans({ roomId }) {
                 className={dateInputClass}
               />
             </div>
-
-            {/* END DATE */}
 
             <div className="min-w-0 w-full overflow-hidden">
               <label className="block text-xs text-gray-400 mb-1">
@@ -835,8 +830,6 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
             min-w-0
           "
         >
-          {/* START DATE */}
-
           <div className="min-w-0 w-full overflow-hidden">
             <label className="block text-xs text-gray-400 mb-1">Từ ngày</label>
 
@@ -847,8 +840,6 @@ function EditPlan({ roomId, plan, onBack, onSaved }) {
               className={dateInputClass}
             />
           </div>
-
-          {/* END DATE */}
 
           <div className="min-w-0 w-full overflow-hidden">
             <label className="block text-xs text-gray-400 mb-1">Đến ngày</label>
@@ -949,20 +940,21 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
 
   const handlers = useSwipeable({
     onSwipedLeft: (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 30) {
         setSwiped(true);
       }
     },
 
     onSwipedRight: (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 30) {
         setSwiped(false);
       }
     },
 
-    delta: 20,
+    delta: 30,
     preventScrollOnSwipe: false,
-    trackMouse: true,
+    trackMouse: false,
+    trackTouch: true,
   });
 
   const style = {
@@ -1116,15 +1108,7 @@ function SortablePlan({ plan, onClick, onDelete, onUpdate }) {
               </p>
             )}
 
-            <p
-              className="
-                text-xs
-                text-gray-400
-                mt-1
-              "
-            >
-              Nhấn để xem lịch trình
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Nhấn để xem lịch trình</p>
           </button>
 
           {/* SỬA */}
@@ -1272,17 +1256,11 @@ function PlanDetail({ roomId, plan, onBack }) {
 
       await addDoc(schedulesRef, {
         text: newSchedule.trim(),
-
         date: newScheduleDate,
-
         time: newScheduleTime || "",
-
         location: locationData,
-
         done: false,
-
         createdAt: serverTimestamp(),
-
         order: Date.now(),
       });
 
@@ -1753,6 +1731,7 @@ function PlanDetail({ roomId, plan, onBack }) {
 
 /* =========================================================
    PLAN ITEM
+   FIX SWIPE / VERTICAL SCROLL
 ========================================================= */
 
 function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
@@ -1787,26 +1766,58 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
 
   /* =======================================================
      SWIPE
+     
+     QUAN TRỌNG:
+     - Không dùng trackMouse
+     - Không chặn vertical scroll
+     - Chỉ nhận swipe nếu deltaX lớn hơn deltaY
+     - Tăng threshold để tránh nhận nhầm thao tác scroll
   ======================================================= */
 
   const handlers = useSwipeable({
     onSwipedLeft: (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      const horizontal = Math.abs(e.deltaX);
+      const vertical = Math.abs(e.deltaY);
+
+      if (horizontal > vertical && horizontal > 30) {
         setSwiped(true);
       }
     },
 
     onSwipedRight: (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      const horizontal = Math.abs(e.deltaX);
+      const vertical = Math.abs(e.deltaY);
+
+      if (horizontal > vertical && horizontal > 30) {
         setSwiped(false);
       }
     },
 
-    delta: 20,
+    delta: 30,
 
+    /*
+      CỰC KỲ QUAN TRỌNG:
+
+      false = không gọi preventDefault()
+      trên thao tác touch.
+
+      Vì vậy browser vẫn có thể scroll dọc
+      một cách tự nhiên.
+    */
     preventScrollOnSwipe: false,
 
-    trackMouse: true,
+    /*
+      Không cần swipe bằng chuột trên desktop.
+      Tránh gesture giả khi rê/chạm chuột.
+    */
+    trackMouse: false,
+
+    trackTouch: true,
+
+    /*
+      Chỉ cần bắt đầu gesture bằng touch.
+    */
+    rotationAngle: 0,
   });
 
   /* =======================================================
@@ -1837,11 +1848,8 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
         doc(db, "rooms", roomId, "plans", planId, "schedules", item.id),
         {
           text: editText.trim(),
-
           date: editDate,
-
           time: editTime || "",
-
           location: locationData,
         },
       );
@@ -1900,8 +1908,11 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
         "
       >
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
+
             deleteSchedule(item);
+
             setSwiped(false);
           }}
           className="
@@ -1920,9 +1931,14 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
       <div
         {...handlers}
         style={{
+          /*
+            Cho browser biết rằng thao tác touch
+            dọc được phép dùng để scroll.
+          */
           touchAction: "pan-y",
         }}
         className={`
+          relative
           bg-white
           rounded-2xl
           pl-1
@@ -1963,6 +1979,9 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
               type="checkbox"
               checked={isDone}
               onChange={() => toggleSchedule(item)}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+              }}
               className="
                 w-5
                 h-5
@@ -2051,7 +2070,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                     type="date"
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
-                    className={`
+                    className="
                       block
                       w-full
                       min-w-0
@@ -2068,7 +2087,7 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
                       focus:ring-2
                       focus:ring-pink-300
                       overflow-hidden
-                    `}
+                    "
                   />
                 </div>
 
@@ -2287,22 +2306,28 @@ function PlanItem({ item, toggleSchedule, deleteSchedule, roomId, planId }) {
           {/* ACTION */}
 
           <button
-            onClick={
-              editing
-                ? handleSave
-                : () => {
-                    setEditText(item.text || "");
+            onClick={(e) => {
+              e.stopPropagation();
 
-                    setEditDate(normalizeScheduleDate(item));
+              if (editing) {
+                handleSave();
+                return;
+              }
 
-                    setEditTime(item.time || "");
+              setEditText(item.text || "");
 
-                    setEditLocation(getLocationName(item.location));
+              setEditDate(normalizeScheduleDate(item));
 
-                    setEditing(true);
-                    setSwiped(false);
-                  }
-            }
+              setEditTime(item.time || "");
+
+              setEditLocation(getLocationName(item.location));
+
+              setEditing(true);
+              setSwiped(false);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
             className="
               text-blue-400
               text-xs
