@@ -29,7 +29,13 @@ function App() {
   const [loginError, setLoginError] = useState("");
 
   // =====================================================
-  // KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP
+  // TAB
+  // =====================================================
+
+  const [tab, setTab] = useState("home");
+
+  // =====================================================
+  // AUTH STATE
   // =====================================================
 
   useEffect(() => {
@@ -42,7 +48,7 @@ function App() {
   }, []);
 
   // =====================================================
-  // ĐĂNG NHẬP
+  // LOGIN
   // =====================================================
 
   const handleLogin = async (e) => {
@@ -86,7 +92,7 @@ function App() {
   };
 
   // =====================================================
-  // ĐĂNG XUẤT
+  // LOGOUT
   // =====================================================
 
   const handleLogout = async () => {
@@ -116,21 +122,16 @@ function App() {
   const roomId = "love123";
 
   // =====================================================
-  // TAB
-  // =====================================================
-
-  const [tab, setTab] = useState("home");
-
-  // =====================================================
-  // LOADING AUTH
+  // AUTH LOADING
   // =====================================================
 
   if (authLoading) {
     return (
       <div
         className="
+          fixed
+          inset-0
           w-full
-          min-h-[100dvh]
           bg-gradient-to-b
           from-pink-100
           to-pink-50
@@ -168,8 +169,9 @@ function App() {
     return (
       <div
         className="
+          fixed
+          inset-0
           w-full
-          min-h-[100dvh]
           bg-gradient-to-b
           from-pink-100
           to-pink-50
@@ -189,10 +191,9 @@ function App() {
             rounded-3xl
             shadow-xl
             p-6
-            my-6
           "
         >
-          {/* ================= LOGO ================= */}
+          {/* LOGO */}
 
           <div className="text-center mb-7">
             <div
@@ -219,7 +220,7 @@ function App() {
             <p className="text-sm text-gray-400 mt-1">Đăng nhập để tiếp tục</p>
           </div>
 
-          {/* ================= FORM ================= */}
+          {/* FORM */}
 
           <form onSubmit={handleLogin} className="space-y-4">
             {/* EMAIL */}
@@ -317,7 +318,7 @@ function App() {
               </div>
             )}
 
-            {/* LOGIN BUTTON */}
+            {/* LOGIN */}
 
             <button
               type="submit"
@@ -345,7 +346,18 @@ function App() {
   }
 
   // =====================================================
-  // ĐÃ ĐĂNG NHẬP
+  // APP CHÍNH
+  //
+  // QUAN TRỌNG:
+  //
+  // KHÔNG dùng:
+  //
+  // h-[100dvh]
+  // h-[calc(100dvh-80px)]
+  //
+  // vì mobile keyboard có thể làm thay đổi dvh.
+  //
+  // App dùng fixed inset-0 để giữ layout ổn định.
   // =====================================================
 
   return (
@@ -361,70 +373,6 @@ function App() {
       "
     >
       {/* =================================================
-          APP CONTENT
-      ================================================= */}
-
-      <div
-        className="
-          absolute
-          inset-0
-          bottom-20
-          w-full
-          overflow-hidden
-        "
-      >
-        {/* ================= HOME ================= */}
-
-        <div
-          className={
-            tab === "home" ? "block w-full h-full overflow-hidden" : "hidden"
-          }
-        >
-          <Home days={days} />
-        </div>
-
-        {/* ================= PLANS ================= */}
-
-        <div
-          className={
-            tab === "plans"
-              ? `
-                block
-                w-full
-                h-full
-                overflow-y-auto
-                overflow-x-hidden
-                overscroll-contain
-                pb-6
-              `
-              : "hidden"
-          }
-        >
-          <Plans roomId={roomId} />
-        </div>
-
-        {/* ================= MEMORIES ================= */}
-
-        <div
-          className={
-            tab === "memories"
-              ? `
-                block
-                w-full
-                h-full
-                overflow-y-auto
-                overflow-x-hidden
-                overscroll-contain
-                pb-6
-              `
-              : "hidden"
-          }
-        >
-          <Memories roomId={roomId} />
-        </div>
-      </div>
-
-      {/* =================================================
           LOGOUT
       ================================================= */}
 
@@ -437,7 +385,7 @@ function App() {
             fixed
             top-4
             right-4
-            z-[60]
+            z-[70]
 
             w-10
             h-10
@@ -464,7 +412,109 @@ function App() {
       )}
 
       {/* =================================================
-          BOTTOM TAB BAR
+          CONTENT
+          
+          Chừa 80px phía dưới cho tab bar.
+          
+          Keyboard khi mở sẽ nằm đè lên khu vực bottom
+          thay vì làm tab bar chạy lên.
+      ================================================= */}
+
+      <main
+        className="
+          absolute
+          top-0
+          left-0
+          right-0
+          bottom-20
+          overflow-hidden
+        "
+      >
+        {/* =================================================
+            HOME
+        ================================================= */}
+
+        <div
+          className={
+            tab === "home"
+              ? `
+                block
+                w-full
+                h-full
+                overflow-y-auto
+                overscroll-contain
+              `
+              : "hidden"
+          }
+        >
+          <Home days={days} />
+        </div>
+
+        {/* =================================================
+            PLANS
+        ================================================= */}
+
+        <div
+          className={
+            tab === "plans"
+              ? `
+                block
+                w-full
+                h-full
+                overflow-y-auto
+                overscroll-contain
+              `
+              : "hidden"
+          }
+        >
+          <Plans roomId={roomId} />
+        </div>
+
+        {/* =================================================
+            MEMORIES
+        ================================================= */}
+
+        <div
+          className={
+            tab === "memories"
+              ? `
+                block
+                w-full
+                h-full
+                overflow-y-auto
+                overscroll-contain
+              `
+              : "hidden"
+          }
+        >
+          <Memories roomId={roomId} />
+        </div>
+      </main>
+
+      {/* =================================================
+          TAB BAR
+          
+          CỐ ĐỊNH Ở ĐÁY.
+          
+          Không phụ thuộc vào h-[100dvh].
+          
+          Khi keyboard mở:
+          
+          ┌────────────────────────┐
+          │                        │
+          │      CONTENT           │
+          │                        │
+          │      INPUT             │
+          │                        │
+          ├────────────────────────┤
+          │ Home Plans TripExpense │
+          ├────────────────────────┤
+          │                        │
+          │       KEYBOARD         │
+          │                        │
+          └────────────────────────┘
+          
+          Keyboard sẽ che tab bar.
       ================================================= */}
 
       <nav
@@ -473,34 +523,30 @@ function App() {
           left-0
           right-0
           bottom-0
+
           z-[50]
 
           h-20
 
-          bg-white/95
+          bg-white/90
           backdrop-blur-md
-          shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
+          shadow-lg
 
           flex
-          items-center
           justify-around
+          items-center
 
           rounded-t-2xl
-
-          shrink-0
-
-          pb-[env(safe-area-inset-bottom)]
         "
       >
-        {/* ================= HOME ================= */}
+        {/* =================================================
+            HOME
+        ================================================= */}
 
         <button
           type="button"
           onClick={() => setTab("home")}
           className={`
-            h-full
-            min-w-[80px]
-
             flex
             flex-col
             items-center
@@ -520,15 +566,14 @@ function App() {
           <span>Home</span>
         </button>
 
-        {/* ================= PLANS ================= */}
+        {/* =================================================
+            PLANS
+        ================================================= */}
 
         <button
           type="button"
           onClick={() => setTab("plans")}
           className={`
-            h-full
-            min-w-[80px]
-
             flex
             flex-col
             items-center
@@ -548,15 +593,14 @@ function App() {
           <span>Plans</span>
         </button>
 
-        {/* ================= MEMORIES ================= */}
+        {/* =================================================
+            MEMORIES
+        ================================================= */}
 
         <button
           type="button"
           onClick={() => setTab("memories")}
           className={`
-            h-full
-            min-w-[80px]
-
             flex
             flex-col
             items-center
